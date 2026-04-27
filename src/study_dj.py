@@ -129,6 +129,13 @@ def retrieve_candidate_songs(
         if not request.allows_lyrics and song.get("language") != "Instrumental":
             continue
         filtered_songs.append(song)
+        
+    if not filtered_songs and songs:
+        # Fallback 1: Ignore lyrics filter
+        filtered_songs = [s for s in songs if request.allows_explicit or s.get("explicit", 0) != 1]
+        if not filtered_songs:
+            # Fallback 2: Ignore all filters to prevent empty retrieval
+            filtered_songs = songs
 
     user_prefs = {
         "genre": request.preferred_genre or primary_rule.get("recommended_genre"),

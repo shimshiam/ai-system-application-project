@@ -193,9 +193,12 @@ def _fetch_artist_genres(client: Any, raw_tracks: Iterable[Dict[str, Any]]) -> D
     genres: Dict[str, List[str]] = {}
     for start in range(0, len(artist_ids), 50):
         chunk = artist_ids[start:start + 50]
-        response = client.artists(chunk)
-        for artist in response.get("artists", []):
-            genres[artist["id"]] = artist.get("genres", [])
+        try:
+            response = client.artists(chunk)
+            for artist in response.get("artists", []):
+                genres[artist["id"]] = artist.get("genres", [])
+        except Exception as e:
+            print(f"Warning: Failed to fetch artist genres: {e}")
     return genres
 
 
@@ -329,6 +332,7 @@ def _merge_classifications(
         updated["tempo_bpm"] = round(70 + (updated["energy"] * 85), 1)
         updated["valence"] = round(0.35 + (updated["energy"] * 0.45), 2)
         updated["danceability"] = round(0.30 + (updated["energy"] * 0.55), 2)
+        updated["language"] = _language_from_features(updated)
         merged.append(updated)
     return merged
 

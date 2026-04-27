@@ -59,8 +59,8 @@ except ImportError:
 
 def load_spotify_songs(auth_code, cache_handler):
     return import_spotify_tracks(
-        limit_top=5,
-        limit_recent=5,
+        limit_top=25,
+        limit_recent=25,
         auth_code=auth_code,
         cache_handler=cache_handler,
     )
