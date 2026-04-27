@@ -4,6 +4,19 @@
 
 This version of the music recommender uses content-based filtering to suggest songs from a small catalog of 20 tracks. It scores each song based on how well it matches a user's preferred genre, mood, energy level, and acoustic preference, then returns the top 5 recommendations with explanations. The system emphasizes energy closeness after a recent experiment that doubled its weight, making it more sensitive to energy targets but potentially creating filter bubbles around high-energy songs.
 
+## RAG Study DJ
+
+The project now includes a Streamlit app called **RAG Study DJ**. It turns the recommender into an AI-powered study playlist assistant.
+
+Instead of only ranking songs, the app uses retrieval-augmented generation:
+
+- It retrieves matching songs from `data/songs.csv`.
+- It retrieves task-specific study guidance from `data/study_rules.csv`.
+- It uses the retrieved songs and study rules to generate a study playlist plan.
+- It validates the final playlist so it only uses retrieved songs.
+
+If `OPENAI_API_KEY` is available, the app uses the OpenAI Responses API to generate the playlist plan. If no API key is configured, it uses a deterministic fallback planner so the app still works for demos and testing.
+
 ## How The System Works
 
 Real music apps like Spotify and YouTube dont just pick songs at random. They look at what other people with similar taste are listening to, and what the actual song sounds like compared to things you already enjoy. Collaborative filtering is great at helping you discover unexpected songs you might not find on your own but it needs tons of user data to work. Content-based filtering can work right away because it just compares song features to your preferences but it tends to keep recommending the same kind of thing over and over.
@@ -88,6 +101,7 @@ This system has a few biases that come directly from its design choices:
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
+   ```
 
 2. Install dependencies
 
@@ -95,11 +109,26 @@ This system has a few biases that come directly from its design choices:
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+3. Run the original CLI recommender:
 
 ```bash
 python -m src.main
 ```
+
+4. Run the RAG Study DJ Streamlit app:
+
+```bash
+streamlit run streamlit_app.py
+```
+
+Optional AI configuration:
+
+```bash
+export OPENAI_API_KEY="your-api-key"
+export AI_MODEL="gpt-5"
+```
+
+Without `OPENAI_API_KEY`, the Streamlit app automatically uses the fallback playlist planner.
 
 Phase 3 Output:
 
