@@ -90,98 +90,102 @@ def render_styles():
         }
 
         /* Mix Console Container Styling - 2000s Metallic Mixer Aesthetic */
-        [data-testid="stVerticalBlockBorderWrapper"] {
-            background:
-                linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(221,229,234,0.96) 42%, rgba(158,171,183,0.98) 100%);
-            border: 1px solid rgba(53, 66, 76, 0.42);
-            border-radius: 8px;
-            box-shadow:
-                0 10px 20px rgba(22,32,44,0.15),
-                inset 0 1px 0 #ffffff,
-                inset 0 -1px 0 rgba(44,54,67,0.42);
-            padding: 1.25rem 1rem;
+        [data-testid="stVerticalBlockBorderWrapper"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] > div[data-testid="stVerticalBlock"] {
+            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(221,229,234,0.96) 42%, rgba(158,171,183,0.98) 100%) !important;
+            border: 1px solid rgba(53, 66, 76, 0.42) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 20px rgba(22,32,44,0.15), inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(44,54,67,0.42) !important;
+            padding: 1.25rem 1rem !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] * {
+        [data-testid="stVerticalBlockBorderWrapper"] *,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] > div[data-testid="stVerticalBlock"] * {
             color: #111722 !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] h3 {
+        [data-testid="stVerticalBlockBorderWrapper"] h3,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] h3 {
             color: #111722 !important;
-            font-family: "Trebuchet MS", Verdana, sans-serif;
-            font-size: 1.25rem;
-            margin-top: 0;
-            padding: 0 0 0.5rem 0;
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid rgba(0,0,0,0.1);
-            border-radius: 0;
-            box-shadow: 0 1px 0 rgba(255,255,255,0.5);
-            text-shadow: 0 1px 0 #fff;
+            font-family: "Trebuchet MS", Verdana, sans-serif !important;
+            font-size: 1.25rem !important;
+            margin-top: 0 !important;
+            padding: 0 0 0.5rem 0 !important;
+            background: transparent !important;
+            border: none !important;
+            border-bottom: 2px solid rgba(0,0,0,0.1) !important;
+            border-radius: 0 !important;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.5) !important;
+            text-shadow: 0 1px 0 #fff !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] label,
-        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stWidgetLabel"] p,
-        [data-testid="stVerticalBlockBorderWrapper"] .stMarkdown p {
+        [data-testid="stVerticalBlockBorderWrapper"] label *,
+        [data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stWidgetLabel"] *,
+        [data-testid="stVerticalBlockBorderWrapper"] p,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] label *,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] div[data-testid="stWidgetLabel"] *,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] p {
             color: #4a5a6a !important;
-            font-family: "Trebuchet MS", sans-serif;
-            font-size: 0.82rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            text-shadow: 0 1px 0 #fff;
-            letter-spacing: 0.5px;
+            font-family: "Trebuchet MS", sans-serif !important;
+            font-size: 0.82rem !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            text-shadow: 0 1px 0 #fff !important;
+            letter-spacing: 0.5px !important;
         }
 
         /* Recessed Dark LCD Inputs */
         [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="select"] > div,
-        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] > div {
-            background:
-                linear-gradient(180deg, #13231e 0%, #0b1411 100%);
-            border: 2px solid #000;
-            border-radius: 6px;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4);
-            min-height: 48px;
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] > div,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="select"] > div,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="input"] > div {
+            background: linear-gradient(180deg, #13231e 0%, #0b1411 100%) !important;
+            border: 2px solid #000 !important;
+            border-radius: 6px !important;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4) !important;
+            min-height: 48px !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="select"] span {
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="select"] *,
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] input,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="select"] *,
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="input"] input {
             color: #b5ff7a !important; /* LCD Green */
-            font-family: "Courier New", monospace;
-            font-weight: 800;
-            text-shadow: 0 0 5px rgba(181,255,122,0.4);
-        }
-
-        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] input {
-            color: #b5ff7a !important;
-            font-family: "Courier New", monospace;
-            font-weight: 800;
+            font-family: "Courier New", monospace !important;
+            font-weight: 800 !important;
+            text-shadow: 0 0 5px rgba(181,255,122,0.4) !important;
         }
 
         /* Slider and Toggles embedded in the plastic chassis */
-        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] {
-            background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 8px;
-            padding: 0.65rem 0.65rem 0.25rem;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff;
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stSlider"] {
+            background: rgba(0,0,0,0.03) !important;
+            border: 1px solid rgba(0,0,0,0.08) !important;
+            border-radius: 8px !important;
+            padding: 0.65rem 0.65rem 0.25rem !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] [role="slider"] {
+        [data-testid="stVerticalBlockBorderWrapper"] [role="slider"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [role="slider"] {
             background-color: var(--red) !important;
             border-color: #ffafa3 !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] [data-testid="stTickBar"] {
-            background: rgba(0,0,0,0.1);
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] [data-testid="stTickBar"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stSlider"] [data-testid="stTickBar"] {
+            background: rgba(0,0,0,0.1) !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stToggle"] {
-            background: rgba(0,0,0,0.03);
-            border: 1px solid rgba(0,0,0,0.08);
-            border-radius: 999px;
-            padding: 0.32rem 0.6rem;
-            margin-bottom: 0.35rem;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff;
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stToggle"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stToggle"] {
+            background: rgba(0,0,0,0.03) !important;
+            border: 1px solid rgba(0,0,0,0.08) !important;
+            border-radius: 999px !important;
+            padding: 0.32rem 0.6rem !important;
+            margin-bottom: 0.35rem !important;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff !important;
         }
 
         .player-shell {
@@ -426,18 +430,26 @@ def render_styles():
             border: 1px solid #5f6b76 !important;
             border-radius: 999px !important;
             box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(17,24,31,0.24) !important;
+            padding: 0.36rem 0.75rem !important;
+        }
+        
+        [data-testid="baseButton-secondary"] *,
+        [data-testid="baseButton-primary"] * {
             color: #121822 !important;
             font-family: "Trebuchet MS", sans-serif !important;
             font-weight: 800 !important;
             text-transform: uppercase !important;
-            padding: 0.36rem 0.75rem !important;
         }
 
         [data-testid="baseButton-secondary"]:hover,
         [data-testid="baseButton-primary"]:hover {
             background: linear-gradient(180deg, #ffffff 0%, #d8dfe4 48%, #93a0ac 100%) !important;
-            color: #000 !important;
             border-color: #78848f !important;
+        }
+
+        [data-testid="baseButton-secondary"]:hover *,
+        [data-testid="baseButton-primary"]:hover * {
+            color: #000 !important;
         }
 
         [data-testid="stToggle"] p,
