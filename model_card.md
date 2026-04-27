@@ -1,55 +1,59 @@
-# 🎧 Model Card: Music Recommender Simulation
+# 🎧 Model Card: Vibe Synthesizer
 
 ## 1. Model Name
 
-**EnergyMatch Recommender 1.0**
+**Vibe Synthesizer (with Spotify Integration)**
 
 ---
 
 ## 2. Intended Use
 
-This recommender suggests songs from a small catalog based on a user's favorite genre, mood, energy level, and acoustic preference. It is meant for classroom exploration and testing ideas, not for a real music service. The system assumes the user has a single genre and mood they want right now.
+This recommender system is designed to generate highly personalized study playlists by combining traditional content-based song filtering with Retrieval-Augmented Generation (RAG) and live Spotify account integration. It uses the listener's task type (e.g., coding, reading) and focus goals alongside musical preferences (genre, mood, acousticness, explicitness) to curate a well-paced study block.
 
 ---
 
 ## 3. How the Model Works
 
-The model compares each song to the user's tastes and gives points for matching features. It gives points for exact genre and mood matches, and extra points when song energy is close to the user's target. Acoustic songs get a small bonus if the user likes acoustic sound. The final score is the sum of these bonuses, and songs are ranked by that score.
+The pipeline follows a multi-stage approach:
+1. **Data Ingestion:** Loads a default catalog of songs or seamlessly ingests up to 50 of the user's top/recently played tracks directly from the Spotify API.
+2. **Metadata Augmentation:** Automatically infers unlisted track features. The system is fortified against Spotify API restrictions (e.g., `403 Forbidden` limits on catalog endpoints) by gracefully falling back to LLM-inferred or title-based genre/mood assignments, recalculating necessary fields like track language based on these updates.
+3. **Retrieval & Filtering:** Candidate tracks are filtered according to the user's UI rules (e.g., excluding explicit tracks or filtering out vocal tracks). A smart fallback system guarantees a playlist by relaxing rules if strict constraints inadvertently filter out all available tracks.
+4. **Scoring:** Retained tracks are scored against retrieved study guidance rules (incorporating pacing and target energy levels).
+5. **Generative Planning:** The final tracklist, complete with justifications and a holistic study strategy, is synthesized via an LLM.
 
 ---
 
 ## 4. Data
 
-The dataset is a small catalog of 20 songs in `data/songs.csv`. It includes genres like pop, lofi, rock, metal, jazz, hip-hop, electronic, and more. Each song also has mood labels, energy, tempo, valence, danceability, and acousticness. The dataset is limited because it only has one mood and one genre per song, and it does not represent every possible listening style.
+The system operates on two data sources:
+- **Local Catalog:** A baseline collection of curated tracks (`data/songs.csv`) and task-specific rules (`data/study_rules.csv`).
+- **Live Spotify Imports:** The user's actual Spotify listening history (Top and Recent tracks). Features such as popularity, acousticness, energy, and genre are dynamically aggregated and normalized, effectively tailoring the data pool to individual listening habits.
 
 ---
 
 ## 5. Strengths
 
-The system works well when the user wants a clear genre and mood, such as happy pop or chill lofi. It can also surface good matches when a song is very close in energy to the user's target. The scoring is easy to understand, so it is useful for learning how recommendation logic works.
+- **Resilience:** The application features robust error handling when interacting with the restrictive Spotify Web API. If catalog data like artist genres are inaccessible, or if strict user constraints filter out too many songs, the system gracefully adapts its logic and filters to ensure a curated playlist is always returned.
+- **Dynamic Pacing:** Beyond just matching songs to genres, it utilizes explicit study rules to dictate energy flow, ensuring the start and end of a playlist support the intended focus task.
+- **Hybrid AI Pipeline:** Leverages an LLM not just to generate descriptions, but to actively classify unknown Spotify tracks and structure the final output.
 
 ---
 
 ## 6. Limitations and Bias
 
-The current scoring system can create a strong filter bubble by over-prioritizing songs with energy close to the user target. This means users with niche or extreme energy preferences may still see recommendations dominated by a small set of songs, even if the genre or mood is not a great fit. The model also treats genre and mood as exact matches only, so similar genres like pop and indie pop or related moods like chill and relaxed get no partial credit. That causes the system to ignore a lot of reasonable alternatives in the catalog and can leave some user profiles with weaker results.
+- **Catalog Dependency:** For users who import a small or highly homogeneous Spotify history (e.g., entirely high-energy rap), the recommender's fallback logic may be forced to ignore the user's "No Lyrics" constraints in order to populate the list. 
+- **LLM Hallucination Risks:** While mitigated by strict JSON schemas and validation loops, the generative step occasionally needs to fall back to a deterministic planner if the LLM struggles to parse the retrieved context.
 
 ---
 
 ## 7. Evaluation
 
-I tested profiles like Party Mode, Study Session, Gym Grinder, Conflicted Pop Fan, Evening Wind-Down, Road Trip, Impossible Energy, and No Good Match. I compared the top songs for each profile and checked whether they matched the desired genre, mood, energy, and acoustic feeling. It was surprising how often energy closeness could push a song into the top list even if the mood was not a perfect match. The Gym Hero example showed that a song can still rank high for happy pop listeners because it is pop and close to the requested high energy.
+The system was evaluated against rigid edge cases, such as users requesting strictly instrumental study tracks from a Spotify library entirely composed of vocal pop music. The smart fallback mechanisms successfully prevented empty retrievals by loosening constraints. API testing confirmed the application no longer crashes when facing newly-enforced `403 Forbidden` catalog restrictions in Development Mode apps.
 
 ---
 
 ## 8. Future Work
 
-- Add partial credit for similar genres and moods so related songs can count.
-- Use a softer energy gap so extreme or unusual targets do not drop all songs to zero.
-- Add a diversity penalty so the top list does not repeat the same style too much.
-
----
-
-## 9. Personal Reflection
-
-I learned that simple recommendation logic can still be useful but it can also be biased by how points are weighted. It was interesting to see how energy became more important when I changed the score rules. This made me realize real music recommenders need to balance many factors.
+- **Advanced Token Management:** Implement robust token refresh flows and API backoffs for the Spotify integration to support long-lived sessions.
+- **Enhanced Feature Extraction:** Support fetching and caching audio features from more lenient secondary APIs or local audio analysis when Spotify restricts access.
+- **Expanded Rule Engine:** Allow users to upload their own study notes or pacing guidelines as additional RAG context.

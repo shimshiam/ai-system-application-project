@@ -18,7 +18,7 @@ from src.study_dj import (
 
 
 st.set_page_config(
-    page_title="RAG Study DJ",
+    page_title="Vibe Synthesizer",
     page_icon="SD",
     layout="wide",
 )
@@ -515,7 +515,7 @@ def render_player_header():
             <div class="player-top">
               <div class="lcd">
                 <div class="kicker">Now Playing // Retrieved Study Mix</div>
-                <h1>RAG Study DJ</h1>
+                <h1>Vibe Synthesizer</h1>
                 <p>Builds a focused playlist by retrieving matching songs and study rules before generating the plan.</p>
               </div>
               <div class="disc"></div>
