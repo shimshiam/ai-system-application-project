@@ -89,7 +89,100 @@ def render_styles():
             padding-bottom: 1rem;
         }
 
-        /* Sidebar CSS removed to accommodate single-page layout */
+        /* Mix Console Container Styling - 2000s Metallic Mixer Aesthetic */
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(221,229,234,0.96) 42%, rgba(158,171,183,0.98) 100%);
+            border: 1px solid rgba(53, 66, 76, 0.42);
+            border-radius: 8px;
+            box-shadow:
+                0 10px 20px rgba(22,32,44,0.15),
+                inset 0 1px 0 #ffffff,
+                inset 0 -1px 0 rgba(44,54,67,0.42);
+            padding: 1.25rem 1rem;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] * {
+            color: #111722 !important;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] h3 {
+            color: #111722 !important;
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            font-size: 1.25rem;
+            margin-top: 0;
+            padding: 0 0 0.5rem 0;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            border-radius: 0;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.5);
+            text-shadow: 0 1px 0 #fff;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] label,
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stWidgetLabel"] p,
+        [data-testid="stVerticalBlockBorderWrapper"] .stMarkdown p {
+            color: #4a5a6a !important;
+            font-family: "Trebuchet MS", sans-serif;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 0 1px 0 #fff;
+            letter-spacing: 0.5px;
+        }
+
+        /* Recessed Dark LCD Inputs */
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="select"] > div,
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] > div {
+            background:
+                linear-gradient(180deg, #13231e 0%, #0b1411 100%);
+            border: 2px solid #000;
+            border-radius: 6px;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4);
+            min-height: 48px;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="select"] span {
+            color: #b5ff7a !important; /* LCD Green */
+            font-family: "Courier New", monospace;
+            font-weight: 800;
+            text-shadow: 0 0 5px rgba(181,255,122,0.4);
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] input {
+            color: #b5ff7a !important;
+            font-family: "Courier New", monospace;
+            font-weight: 800;
+        }
+
+        /* Slider and Toggles embedded in the plastic chassis */
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 8px;
+            padding: 0.65rem 0.65rem 0.25rem;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff;
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] [role="slider"] {
+            background-color: var(--red) !important;
+            border-color: #ffafa3 !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] [data-testid="stTickBar"] {
+            background: rgba(0,0,0,0.1);
+        }
+
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stToggle"] {
+            background: rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 999px;
+            padding: 0.32rem 0.6rem;
+            margin-bottom: 0.35rem;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff;
+        }
 
         .player-shell {
             background:
@@ -313,9 +406,63 @@ def render_styles():
             color: #1d2730 !important;
         }
 
-        .stAlert {
-            border-radius: 8px;
+        /* --- UI FIXES START --- */
+        [data-testid="stAlert"] {
+            background: linear-gradient(180deg, #13231e 0%, #0b1411 100%) !important;
+            border: 2px solid #000 !important;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4) !important;
+            border-radius: 6px !important;
         }
+        
+        [data-testid="stAlert"] * {
+            color: #b5ff7a !important;
+            font-family: "Courier New", monospace !important;
+            text-shadow: 0 0 5px rgba(181,255,122,0.4) !important;
+        }
+
+        [data-testid="baseButton-secondary"],
+        [data-testid="baseButton-primary"] {
+            background: linear-gradient(180deg, #fbfcfd 0%, #c1cad1 48%, #7f8a95 100%) !important;
+            border: 1px solid #5f6b76 !important;
+            border-radius: 999px !important;
+            box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(17,24,31,0.24) !important;
+            color: #121822 !important;
+            font-family: "Trebuchet MS", sans-serif !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            padding: 0.36rem 0.75rem !important;
+        }
+
+        [data-testid="baseButton-secondary"]:hover,
+        [data-testid="baseButton-primary"]:hover {
+            background: linear-gradient(180deg, #ffffff 0%, #d8dfe4 48%, #93a0ac 100%) !important;
+            color: #000 !important;
+            border-color: #78848f !important;
+        }
+
+        [data-testid="stToggle"] p,
+        [data-testid="stRadio"] label p {
+            color: #4a5a6a !important;
+            font-family: "Trebuchet MS", sans-serif !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            text-shadow: 0 1px 0 #fff !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        h3#mix-console {
+            color: #2c3e50 !important;
+            font-family: "Trebuchet MS", Verdana, sans-serif !important;
+            font-size: 1.8rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 2px !important;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.7), -1px -1px 0px rgba(0,0,0,0.2) !important;
+            margin-top: 1.5rem !important;
+            margin-bottom: 1rem !important;
+            padding-left: 1rem !important;
+            border-left: 6px solid var(--aqua) !important;
+        }
+        /* --- UI FIXES END --- */
 
         @media (max-width: 900px) {
             .player-top {
@@ -379,90 +526,92 @@ def main():
     source_label = "Demo catalog"
     source_notice = ""
 
-    st.markdown("<div class='section-panel'>", unsafe_allow_html=True)
-    st.markdown("### Mix Console", unsafe_allow_html=True)
+    st.markdown("### Mix Console")
     col1, col2, col3 = st.columns(3, gap="large")
 
     with col1:
-        st.subheader("Spotify Integration")
-        if not spotify_is_configured():
-            st.warning("Spotify credentials are missing. Please provide your Client ID below to connect.")
-            client_id = st.text_input("Spotify Client ID", type="password")
-            if st.button("Save Credentials", use_container_width=True):
-                if client_id:
-                    os.environ["SPOTIPY_CLIENT_ID"] = client_id
-                    os.environ["SPOTIPY_REDIRECT_URI"] = "http://127.0.0.1:8501"
-                    st.rerun()
-                else:
-                    st.error("Please provide your Client ID.")
-        else:
-            auth_code = get_query_code()
-            if not st.session_state.get("spotify_songs"):
-                st.link_button("Connect Spotify", get_spotify_auth_url())
-            if auth_code:
-                st.caption("Spotify authorization code detected.")
-            if st.button("Import Spotify tracks", use_container_width=True):
-                try:
-                    st.session_state["spotify_songs"] = load_spotify_songs(auth_code)
-                    st.session_state["spotify_error"] = ""
-                except Exception as exc:
-                    st.session_state["spotify_songs"] = []
-                    st.session_state["spotify_error"] = str(exc)
+        with st.container(border=True):
+            st.subheader("Spotify Integration")
+            if not spotify_is_configured():
+                st.warning("Spotify credentials are missing. Please provide your Client ID below to connect.")
+                client_id = st.text_input("Spotify Client ID", type="password")
+                if st.button("Save Credentials", use_container_width=True):
+                    if client_id:
+                        os.environ["SPOTIPY_CLIENT_ID"] = client_id
+                        os.environ["SPOTIPY_REDIRECT_URI"] = "http://127.0.0.1:8501"
+                        st.rerun()
+                    else:
+                        st.error("Please provide your Client ID.")
+            else:
+                auth_code = get_query_code()
+                if not st.session_state.get("spotify_songs"):
+                    st.markdown('''<style>a[href^="https://accounts.spotify.com"] { background-color: #1DB954 !important; color: white !important; border: none !important; font-weight: bold !important; }</style>''', unsafe_allow_html=True)
+                    st.link_button("Connect Spotify", get_spotify_auth_url())
+                if auth_code:
+                    st.caption("Spotify authorization code detected.")
+                if st.button("Import Spotify tracks", use_container_width=True):
+                    try:
+                        st.session_state["spotify_songs"] = load_spotify_songs(auth_code)
+                        st.session_state["spotify_error"] = ""
+                    except Exception as exc:
+                        st.session_state["spotify_songs"] = []
+                        st.session_state["spotify_error"] = str(exc)
 
-            spotify_songs = st.session_state.get("spotify_songs", [])
-            spotify_error = st.session_state.get("spotify_error", "")
-            if spotify_songs:
-                st.success(f"Imported {len(spotify_songs)} Spotify tracks.")
-            elif spotify_error:
-                st.warning(f"Spotify import failed: {spotify_error}")
+                spotify_songs = st.session_state.get("spotify_songs", [])
+                spotify_error = st.session_state.get("spotify_error", "")
+                if spotify_songs:
+                    st.success(f"Imported {len(spotify_songs)} Spotify tracks.")
+                elif spotify_error:
+                    st.warning(f"Spotify import failed: {spotify_error}")
 
-        st.subheader("Music Source")
-        source_options = ["Demo catalog"]
-        if st.session_state.get("spotify_songs"):
-            source_options.append("Spotify import")
+            st.subheader("Music Source")
+            source_options = ["Demo catalog"]
+            if st.session_state.get("spotify_songs"):
+                source_options.append("Spotify import")
+                
+            source_mode = st.radio(
+                "Catalog source",
+                source_options,
+                horizontal=True,
+                index=1 if st.session_state.get("spotify_songs") else 0,
+                label_visibility="collapsed"
+            )
             
-        source_mode = st.radio(
-            "Catalog source",
-            source_options,
-            horizontal=True,
-            index=1 if st.session_state.get("spotify_songs") else 0
-        )
-        
-        if source_mode == "Spotify import" and st.session_state.get("spotify_songs"):
-            active_songs = st.session_state["spotify_songs"]
-            source_label = "Spotify import"
-            source_notice = ""
-        else:
-            active_songs = demo_songs
-            source_label = "Demo catalog"
-            if spotify_is_configured() and not st.session_state.get("spotify_songs"):
-                source_notice = "Connect Spotify and import tracks, or keep using the demo catalog."
+            if source_mode == "Spotify import" and st.session_state.get("spotify_songs"):
+                active_songs = st.session_state["spotify_songs"]
+                source_label = "Spotify import"
+                source_notice = ""
+            else:
+                active_songs = demo_songs
+                source_label = "Demo catalog"
+                if spotify_is_configured() and not st.session_state.get("spotify_songs"):
+                    source_notice = "Connect Spotify and import tracks, or keep using the demo catalog."
 
     with col2:
-        genres = unique_values(active_songs, "genre")
-        moods = unique_values(active_songs, "mood")
+        with st.container(border=True):
+            genres = unique_values(active_songs, "genre")
+            moods = unique_values(active_songs, "mood")
 
-        st.subheader("Study Session")
-        task_type = st.selectbox("Task type", task_types, index=option_index(task_types, "coding"))
-        focus_goal = st.selectbox("Focus goal", focus_goals, index=option_index(focus_goals, "deep focus"))
-        session_minutes = st.slider("Session length", 15, 120, 45, step=5)
+            st.subheader("Study Session")
+            task_type = st.selectbox("Task type", task_types, index=option_index(task_types, "coding"))
+            focus_goal = st.selectbox("Focus goal", focus_goals, index=option_index(focus_goals, "deep focus"))
+            session_minutes = st.slider("Session length", 15, 120, 45, step=5)
 
     with col3:
-        st.subheader("Music Preferences")
-        preferred_genre = st.selectbox("Preferred genre", genres, index=option_index(genres, "lofi"))
-        preferred_mood = st.selectbox("Preferred mood", moods, index=option_index(moods, "focused"))
-        target_energy = st.slider("Target energy", 0.0, 1.0, 0.4, step=0.05)
-        
-        st.markdown("**Filters & Advanced**")
-        col_a, col_b = st.columns(2)
-        with col_a:
-            likes_acoustic = st.toggle("Acoustic", value=True)
-            allows_lyrics = st.toggle("Lyrics", value=False)
-        with col_b:
-            allows_explicit = st.toggle("Explicit", value=False)
-            use_llm = st.toggle("Use LLM", value=bool(os.getenv("OPENAI_API_KEY")))
-    
-    st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            st.subheader("Music Preferences")
+            preferred_genre = st.selectbox("Preferred genre", genres, index=option_index(genres, "lofi"))
+            preferred_mood = st.selectbox("Preferred mood", moods, index=option_index(moods, "focused"))
+            target_energy = st.slider("Target energy", 0.0, 1.0, 0.4, step=0.05)
+            
+            st.markdown("**Filters & Advanced**")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                likes_acoustic = st.toggle("Acoustic", value=True)
+                allows_lyrics = st.toggle("Lyrics", value=False)
+            with col_b:
+                allows_explicit = st.toggle("Explicit", value=False)
+                use_llm = st.toggle("Use LLM", value=bool(os.getenv("OPENAI_API_KEY")))
 
     request = StudyDJRequest(
         task_type=task_type,
