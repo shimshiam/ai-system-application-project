@@ -10,6 +10,7 @@ from src.recommender import (
     EnergyFocusedScorer,
     GenreFirstScorer,
     MoodFirstScorer,
+    ResonanceScorer,
     recommend_songs,
 )
 
@@ -19,6 +20,7 @@ SCORERS = {
     "genre_first": GenreFirstScorer,
     "mood_first": MoodFirstScorer,
     "energy_focused": EnergyFocusedScorer,
+    "resonance": ResonanceScorer,
 }
 
 
@@ -63,6 +65,8 @@ class StudyDJRequest:
     likes_acoustic: bool
     allows_lyrics: bool
     allows_explicit: bool
+    synthesis_mode: Optional[str] = None
+    synthesis_params: Optional[Dict[str, Any]] = None
 
 
 def load_study_rules(csv_path: str) -> List[Dict[str, Any]]:
@@ -119,7 +123,12 @@ def retrieve_candidate_songs(
     """Retrieve candidate tracks using recommender scores plus study constraints."""
     primary_rule = study_rules[0] if study_rules else {}
     target_energy = _energy_for_study_rule(request.target_energy, primary_rule)
-    strategy = primary_rule.get("strategy", "balanced")
+    
+    if request.synthesis_mode and request.synthesis_mode != "auto":
+        strategy = request.synthesis_mode
+    else:
+        strategy = primary_rule.get("strategy", "balanced")
+        
     scorer = SCORERS.get(strategy, BalancedScorer)()
 
     filtered_songs = []
@@ -142,6 +151,8 @@ def retrieve_candidate_songs(
         "mood": request.preferred_mood or primary_rule.get("recommended_mood"),
         "energy": target_energy,
         "likes_acoustic": request.likes_acoustic,
+        # pass through optional synthesis parameters (e.g. tuning shifts for resonance)
+        "tuning_shift": float((request.synthesis_params or {}).get("tuning_shift", 0.0)),
     }
     recommendations = recommend_songs(user_prefs, filtered_songs, k=k, scorer=scorer)
     return [

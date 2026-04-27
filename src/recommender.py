@@ -270,6 +270,71 @@ class EnergyFocusedScorer(Scorer):
 
         return (score, reasons)
 
+
+class ResonanceScorer(Scorer):
+    """Resonance-based scorer that measures harmonic fit to a user's target vibe."""
+
+    MOOD_TO_VALENCE = {
+        "happy": 0.8,
+        "upbeat": 0.75,
+        "chill": 0.4,
+        "focused": 0.35,
+        "relaxed": 0.3,
+        "intense": 0.85,
+        "confident": 0.65,
+    }
+
+    def score_song(self, user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
+        # Extract preferences with sensible defaults
+        target_energy = float(user_prefs.get("energy", 0.5))
+        tuning_shift = float(user_prefs.get("tuning_shift", 0.0))
+        target_energy = max(0.0, min(1.0, target_energy + tuning_shift))
+
+        target_mood = user_prefs.get("mood", "")
+        target_valence = float(self.MOOD_TO_VALENCE.get(target_mood, 0.5))
+
+        reasons: List[str] = []
+
+        # Energy match (0..1)
+        song_energy = float(song.get("energy", 0.5))
+        energy_match = max(0.0, 1.0 - abs(target_energy - song_energy))
+        reasons.append(f"energy_match={energy_match:.2f}")
+
+        # Valence proximity (0..1)
+        song_valence = float(song.get("valence", 0.5))
+        valence_match = max(0.0, 1.0 - abs(target_valence - song_valence))
+        reasons.append(f"valence_match={valence_match:.2f}")
+
+        # Mood tag resonance (1.0 if user's mood in song tags)
+        mood_resonance = 1.0 if target_mood in song.get("detailed_mood_tags", []) else 0.0
+        if mood_resonance:
+            reasons.append("mood_tag_resonance")
+
+        # Acoustic alignment (0..1)
+        likes_acoustic = bool(user_prefs.get("likes_acoustic", False))
+        acousticness = float(song.get("acousticness", 0.5))
+        acoustic_match = acousticness if likes_acoustic else (1.0 - acousticness)
+        reasons.append(f"acoustic_match={acoustic_match:.2f}")
+
+        # Combine into a resonance score (0..1)
+        resonance_raw = (
+            0.5 * energy_match
+            + 0.2 * valence_match
+            + 0.2 * mood_resonance
+            + 0.1 * acoustic_match
+        )
+
+        # Scale to be roughly comparable with other scorers
+        score = resonance_raw * 3.0
+        if resonance_raw > 0.85:
+            reasons.append("strong resonance")
+        elif resonance_raw > 0.6:
+            reasons.append("good resonance")
+        else:
+            reasons.append("weak resonance")
+
+        return (score, reasons)
+
 class Recommender:
     """
     OOP implementation of the recommendation logic.

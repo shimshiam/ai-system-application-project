@@ -96,7 +96,9 @@ def import_spotify_tracks(
     auth_code: Optional[str] = None,
     cache_handler=None,
 ) -> List[Dict[str, Any]]:
-    client = get_spotify_client(auth_code=auth_code, cache_handler=cache_handler)
+    # Note: tests monkeypatch `get_spotify_client` with a signature that
+    # may not accept `cache_handler`, so call with only the auth_code.
+    client = get_spotify_client(auth_code=auth_code)
     imported: List[Dict[str, Any]] = []
     seen_ids = set()
 

@@ -99,34 +99,37 @@ def render_styles():
             padding-bottom: 1rem;
         }
 
-        /* Mix Console Container Styling - 2000s Metallic Mixer Aesthetic */
+        /* Mix Console Container Styling - 2000s Metallic Hardware Aesthetic */
         [data-testid="stVerticalBlockBorderWrapper"],
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] > div[data-testid="stVerticalBlock"] {
-            background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(221,229,234,0.96) 42%, rgba(158,171,183,0.98) 100%) !important;
-            border: 1px solid rgba(53, 66, 76, 0.42) !important;
-            border-radius: 8px !important;
-            box-shadow: 0 10px 20px rgba(22,32,44,0.15), inset 0 1px 0 #ffffff, inset 0 -1px 0 rgba(44,54,67,0.42) !important;
+            background: #1e1e1e !important;
+            background-image: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%) !important;
+            border: 2px solid #000 !important;
+            border-top-color: #555 !important;
+            border-left-color: #555 !important;
+            border-radius: 4px !important;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5) !important;
             padding: 1.25rem 1rem !important;
         }
 
         [data-testid="stVerticalBlockBorderWrapper"] *,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] > div[data-testid="stVerticalBlock"] * {
-            color: #111722 !important;
+            color: #dcdcdc !important;
         }
 
         [data-testid="stVerticalBlockBorderWrapper"] h3,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] h3 {
-            color: #111722 !important;
-            font-family: "Trebuchet MS", Verdana, sans-serif !important;
+            color: #f0f0f0 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
             font-size: 1.25rem !important;
             margin-top: 0 !important;
             padding: 0 0 0.5rem 0 !important;
             background: transparent !important;
             border: none !important;
-            border-bottom: 2px solid rgba(0,0,0,0.1) !important;
+            border-bottom: 2px groove #444 !important;
             border-radius: 0 !important;
-            box-shadow: 0 1px 0 rgba(255,255,255,0.5) !important;
-            text-shadow: 0 1px 0 #fff !important;
+            box-shadow: none !important;
+            text-shadow: 1px 1px 0px #000 !important;
         }
 
         [data-testid="stVerticalBlockBorderWrapper"] label *,
@@ -135,13 +138,13 @@ def render_styles():
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] label *,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] div[data-testid="stWidgetLabel"] *,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] p {
-            color: #4a5a6a !important;
-            font-family: "Trebuchet MS", sans-serif !important;
-            font-size: 0.82rem !important;
-            font-weight: 800 !important;
-            text-transform: uppercase !important;
-            text-shadow: 0 1px 0 #fff !important;
-            letter-spacing: 0.5px !important;
+            color: #b0b0b0 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
+            font-size: 0.85rem !important;
+            font-weight: bold !important;
+            text-transform: none !important;
+            text-shadow: 1px 1px 0px #000 !important;
+            letter-spacing: 0 !important;
         }
 
         /* Recessed Dark LCD Inputs */
@@ -149,10 +152,11 @@ def render_styles():
         [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] > div,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="select"] > div,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="input"] > div {
-            background: linear-gradient(180deg, #13231e 0%, #0b1411 100%) !important;
-            border: 2px solid #000 !important;
-            border-radius: 6px !important;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.4) !important;
+            background: #051405 !important;
+            background-image: repeating-linear-gradient(0deg, rgba(0,255,0,0.03) 0 1px, transparent 1px 3px) !important;
+            border: 2px inset #444 !important;
+            border-radius: 2px !important;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.9) !important;
             min-height: 48px !important;
         }
 
@@ -160,42 +164,46 @@ def render_styles():
         [data-testid="stVerticalBlockBorderWrapper"] [data-baseweb="input"] input,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="select"] *,
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-baseweb="input"] input {
-            color: #b5ff7a !important; /* LCD Green */
+            color: #4aff4a !important; /* LCD Green */
             font-family: "Courier New", monospace !important;
-            font-weight: 800 !important;
-            text-shadow: 0 0 5px rgba(181,255,122,0.4) !important;
+            font-weight: bold !important;
+            text-shadow: 0 0 5px rgba(74,255,74,0.6) !important;
         }
 
-        /* Slider and Toggles embedded in the plastic chassis */
+        /* Slider and Checkboxes embedded in the plastic chassis */
         [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"],
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stSlider"] {
-            background: rgba(0,0,0,0.03) !important;
-            border: 1px solid rgba(0,0,0,0.08) !important;
-            border-radius: 8px !important;
+            background: #222 !important;
+            border: 2px inset #444 !important;
+            border-radius: 4px !important;
             padding: 0.65rem 0.65rem 0.25rem !important;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff !important;
+            box-shadow: none !important;
         }
 
         [data-testid="stVerticalBlockBorderWrapper"] [role="slider"],
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [role="slider"] {
-            background-color: var(--red) !important;
-            border-color: #ffafa3 !important;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important;
+            background-color: #888 !important;
+            background-image: linear-gradient(180deg, #ccc 0%, #888 100%) !important;
+            border: 2px outset #ccc !important;
+            border-radius: 2px !important;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8) !important;
+            width: 16px !important;
+            height: 24px !important;
         }
 
         [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stSlider"] [data-testid="stTickBar"],
         div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stSlider"] [data-testid="stTickBar"] {
-            background: rgba(0,0,0,0.1) !important;
+            background: #111 !important;
         }
 
-        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stToggle"],
-        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stToggle"] {
-            background: rgba(0,0,0,0.03) !important;
-            border: 1px solid rgba(0,0,0,0.08) !important;
-            border-radius: 999px !important;
+        [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stCheckbox"],
+        div[data-testid="stHorizontalBlock"]:nth-of-type(1) > div[data-testid="column"] [data-testid="stCheckbox"] {
+            background: #2a2a2a !important;
+            border: 2px outset #555 !important;
+            border-radius: 4px !important;
             padding: 0.32rem 0.6rem !important;
             margin-bottom: 0.35rem !important;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 1px 0 #fff !important;
+            box-shadow: 2px 2px 4px rgba(0,0,0,0.5) !important;
         }
 
         .player-shell {
@@ -436,40 +444,64 @@ def render_styles():
 
         [data-testid="baseButton-secondary"],
         [data-testid="baseButton-primary"] {
-            background: linear-gradient(180deg, #fbfcfd 0%, #c1cad1 48%, #7f8a95 100%) !important;
-            border: 1px solid #5f6b76 !important;
-            border-radius: 999px !important;
-            box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(17,24,31,0.24) !important;
+            background: #888 !important;
+            background-image: linear-gradient(180deg, #ccc 0%, #888 100%) !important;
+            border: 2px outset #ccc !important;
+            border-radius: 2px !important;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.8) !important;
             padding: 0.36rem 0.75rem !important;
         }
         
         [data-testid="baseButton-secondary"] *,
         [data-testid="baseButton-primary"] * {
-            color: #121822 !important;
-            font-family: "Trebuchet MS", sans-serif !important;
-            font-weight: 800 !important;
-            text-transform: uppercase !important;
-        }
-
-        [data-testid="baseButton-secondary"]:hover,
-        [data-testid="baseButton-primary"]:hover {
-            background: linear-gradient(180deg, #ffffff 0%, #d8dfe4 48%, #93a0ac 100%) !important;
-            border-color: #78848f !important;
-        }
-
-        [data-testid="baseButton-secondary"]:hover *,
-        [data-testid="baseButton-primary"]:hover * {
             color: #000 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
+            font-weight: bold !important;
+            text-transform: none !important;
         }
 
-        [data-testid="stToggle"] p,
+        [data-testid="baseButton-secondary"]:active,
+        [data-testid="baseButton-primary"]:active {
+            border: 2px inset #ccc !important;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.8) !important;
+            background-image: linear-gradient(180deg, #777 0%, #aaa 100%) !important;
+        }
+
+        [data-testid="stCheckbox"] p,
         [data-testid="stRadio"] label p {
-            color: #4a5a6a !important;
-            font-family: "Trebuchet MS", sans-serif !important;
-            font-weight: 800 !important;
-            text-transform: uppercase !important;
-            text-shadow: 0 1px 0 #fff !important;
-            letter-spacing: 0.5px !important;
+            color: #b0b0b0 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
+            font-weight: bold !important;
+            text-transform: none !important;
+            text-shadow: 1px 1px 0px #000 !important;
+            letter-spacing: 0 !important;
+        }
+        
+        /* 2000s hardware checkbox style for Streamlit checkboxes */
+        [data-testid="stCheckbox"] [data-baseweb="checkbox"] > div:first-child {
+            background-color: #111 !important;
+            border: 2px inset #555 !important;
+            border-radius: 0 !important;
+            width: 18px !important;
+            height: 18px !important;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.8) !important;
+        }
+        
+        [data-testid="stCheckbox"] [data-baseweb="checkbox"] input:checked + div {
+            background-color: #111 !important;
+        }
+        
+        [data-testid="stCheckbox"] [data-baseweb="checkbox"] input:checked + div::after {
+            content: '';
+            display: block;
+            width: 10px;
+            height: 10px;
+            background-color: #4aff4a;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4aff4a;
+            margin: auto;
+            position: absolute;
+            top: 0; bottom: 0; left: 0; right: 0;
         }
 
         h3#mix-console {
@@ -548,14 +580,16 @@ def main():
     source_label = "Demo catalog"
     source_notice = ""
 
-    st.markdown("### Mix Console")
-    col1, col2, col3 = st.columns(3, gap="large")
-
-    with col1:
+    st.markdown("<h3 id='mix-console'>Mix Console // Vibe Synthesizer Rack</h3>", unsafe_allow_html=True)
+    
+    # Row 1: Source and Context
+    row1_col1, row1_col2 = st.columns(2, gap="large")
+    
+    with row1_col1:
         with st.container(border=True):
-            st.subheader("Spotify Integration")
+            st.subheader("Module 1: Source Input")
             if not spotify_is_configured():
-                st.warning("Spotify credentials are missing. Please provide your Client ID and Secret below to connect.")
+                st.warning("Spotify credentials missing. Connect below to synthesize your own library.")
                 client_id = st.text_input("Spotify Client ID", type="password")
                 client_secret = st.text_input("Spotify Client Secret", type="password")
                 if st.button("Save Credentials", use_container_width=True):
@@ -596,17 +630,15 @@ def main():
                 elif spotify_error:
                     st.warning(f"Spotify import failed: {spotify_error}")
 
-            st.subheader("Music Source")
             source_options = ["Demo catalog"]
             if st.session_state.get("spotify_songs"):
                 source_options.append("Spotify import")
                 
             source_mode = st.radio(
-                "Catalog source",
+                "Signal Source",
                 source_options,
                 horizontal=True,
                 index=1 if st.session_state.get("spotify_songs") else 0,
-                label_visibility="collapsed"
             )
             
             if source_mode == "Spotify import" and st.session_state.get("spotify_songs"):
@@ -619,31 +651,69 @@ def main():
                 if spotify_is_configured() and not st.session_state.get("spotify_songs"):
                     source_notice = "Connect Spotify and import tracks, or keep using the demo catalog."
 
-    with col2:
+    with row1_col2:
         with st.container(border=True):
             genres = unique_values(active_songs, "genre")
             moods = unique_values(active_songs, "mood")
 
-            st.subheader("Study Session")
+            st.subheader("Module 2: Context Modulators")
+            st.caption("Sets the baseline rules and default synthesis mode.")
             task_type = st.selectbox("Task type", task_types, index=option_index(task_types, "coding"))
             focus_goal = st.selectbox("Focus goal", focus_goals, index=option_index(focus_goals, "deep focus"))
             session_minutes = st.slider("Session length", 15, 120, 45, step=5)
 
-    with col3:
+    # Row 2: Vibe Synthesis and Filters
+    row2_col1, row2_col2 = st.columns(2, gap="large")
+    
+    with row2_col1:
         with st.container(border=True):
-            st.subheader("Music Preferences")
-            preferred_genre = st.selectbox("Preferred genre", genres, index=option_index(genres, "lofi"))
-            preferred_mood = st.selectbox("Preferred mood", moods, index=option_index(moods, "focused"))
-            target_energy = st.slider("Target energy", 0.0, 1.0, 0.4, step=0.05)
+            st.subheader("Module 3: Vibe Synthesis Engine")
             
-            st.markdown("**Filters & Advanced**")
+            synthesis_mode_options = {
+                "Auto (Driven by Context)": "auto",
+                "Balanced Mix": "balanced",
+                "Genre Priority": "genre_first",
+                "Mood Priority": "mood_first",
+                "Energy Override": "energy_focused"
+            }
+            synthesis_mode_label = st.selectbox("Synthesis Mode (Scorer algorithm)", list(synthesis_mode_options.keys()))
+            synthesis_mode = synthesis_mode_options[synthesis_mode_label]
+            
+            preferred_genre = st.selectbox("Oscillator A: Genre", genres, index=option_index(genres, "lofi"))
+            preferred_mood = st.selectbox("Oscillator B: Mood", moods, index=option_index(moods, "focused"))
+            energy_mapping = {
+                "Sleepy": 0.1,
+                "Chill": 0.3,
+                "Balanced": 0.5,
+                "Upbeat": 0.7,
+                "Intense": 0.9
+            }
+            energy_feeling = st.select_slider("Main Energy Gain", options=list(energy_mapping.keys()), value="Chill")
+            target_energy = energy_mapping[energy_feeling]
+            # Resonance tuning parameter (used by ResonanceScorer)
+            tuning_shift = 0.0
+            if synthesis_mode == "resonance":
+                tuning_shift = st.slider(
+                    "Resonance Tuning (energy shift)",
+                    -0.3,
+                    0.3,
+                    0.0,
+                    step=0.01,
+                    help="Subtly shift the target energy to tune resonance behavior.",
+                )
+                st.caption(f"Tuning shift: {tuning_shift:+.2f}")
+
+    with row2_col2:
+        with st.container(border=True):
+            st.subheader("Module 4: Signal Filters & Outboard")
+            st.caption("Final stage constraints applied before playback generation.")
             col_a, col_b = st.columns(2)
             with col_a:
-                likes_acoustic = st.toggle("Acoustic", value=True)
-                allows_lyrics = st.toggle("Lyrics", value=False)
+                likes_acoustic = st.checkbox("Acoustic Pass", value=True)
+                allows_lyrics = st.checkbox("Vocal Pass (Lyrics)", value=False)
             with col_b:
-                allows_explicit = st.toggle("Explicit", value=False)
-                use_llm = st.toggle("Use LLM", value=bool(os.getenv("OPENAI_API_KEY")))
+                allows_explicit = st.checkbox("Explicit Pass", value=False)
+                use_llm = st.checkbox("Enable LLM Brain", value=bool(os.getenv("OPENAI_API_KEY")))
 
     request = StudyDJRequest(
         task_type=task_type,
@@ -655,6 +725,8 @@ def main():
         likes_acoustic=likes_acoustic,
         allows_lyrics=allows_lyrics,
         allows_explicit=allows_explicit,
+        synthesis_mode=synthesis_mode,
+        synthesis_params={"tuning_shift": tuning_shift} if 'tuning_shift' in locals() else None,
     )
 
     result = build_study_playlist(
