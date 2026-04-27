@@ -17,6 +17,8 @@ Instead of only ranking songs, the app uses retrieval-augmented generation:
 
 If `OPENAI_API_KEY` is available, the app uses the OpenAI Responses API to generate the playlist plan. If no API key is configured, it uses a deterministic fallback planner so the app still works for demos and testing.
 
+The app can also personalize recommendations with Spotify. Spotify import is read-only: it imports top and recently played tracks, classifies them into the recommender schema, and uses them as the playlist catalog. It does not create playlists, save tracks, or control playback.
+
 ## How The System Works
 
 Real music apps like Spotify and YouTube dont just pick songs at random. They look at what other people with similar taste are listening to, and what the actual song sounds like compared to things you already enjoy. Collaborative filtering is great at helping you discover unexpected songs you might not find on your own but it needs tons of user data to work. Content-based filtering can work right away because it just compares song features to your preferences but it tends to keep recommending the same kind of thing over and over.
@@ -129,6 +131,16 @@ export AI_MODEL="gpt-5"
 ```
 
 Without `OPENAI_API_KEY`, the Streamlit app automatically uses the fallback playlist planner.
+
+Optional Spotify configuration:
+
+```bash
+export SPOTIPY_CLIENT_ID="your-spotify-client-id"
+export SPOTIPY_CLIENT_SECRET="your-spotify-client-secret"
+export SPOTIPY_REDIRECT_URI="http://localhost:8501"
+```
+
+To use Spotify import, create a Spotify developer app, add the redirect URI above to that app, restart Streamlit, choose **Spotify import** in the sidebar, connect Spotify, and import tracks. If Spotify is not configured or import fails, the app falls back to the demo catalog.
 
 Phase 3 Output:
 

@@ -182,7 +182,9 @@ def generate_playlist_plan(
             return _ensure_plan_uses_retrieved_songs(plan, retrieval, request)
         except Exception as exc:
             fallback = generate_fallback_playlist_plan(request, retrieval)
-            fallback["summary"] += f" AI generation was unavailable, so fallback planning was used: {exc}"
+            fallback["ai_notice"] = (
+                "OpenAI generation was unavailable, so the deterministic fallback planner was used."
+            )
             return fallback
     return generate_fallback_playlist_plan(request, retrieval)
 

@@ -48,6 +48,7 @@ Completion criteria:
 - The generated playlist uses only retrieved songs.
 - The app works without an API key using deterministic fallback planning.
 - The app can use OpenAI generation when `OPENAI_API_KEY` is configured.
+- Spotify import is read-only and can replace the demo catalog with top/recent Spotify tracks when `SPOTIPY_CLIENT_ID`, `SPOTIPY_CLIENT_SECRET`, and `SPOTIPY_REDIRECT_URI` are configured.
 
 ## Retained Decisions
 
@@ -63,6 +64,7 @@ Completion criteria:
 - User energy values are expected to be between `0.0` and `1.0`, but the current examples include an out-of-range test profile.
 - `pytest` is listed in `requirements.txt`, but it was not installed in the active shell environment during the last check.
 - `openai` and `tabulate` are now listed in `requirements.txt` for the AI app and formatted CLI output.
+- `spotipy` is now listed in `requirements.txt` for read-only Spotify personalization.
 
 ## Reflection Notes
 

@@ -1,8 +1,14 @@
 import os
+from html import escape
 
 import streamlit as st
 
 from src.recommender import load_songs
+from src.spotify_client import (
+    get_spotify_auth_url,
+    import_spotify_tracks,
+    spotify_is_configured,
+)
 from src.study_dj import (
     StudyDJRequest,
     build_study_playlist,
@@ -28,56 +34,516 @@ def unique_values(songs, field):
     return sorted({song[field] for song in songs})
 
 
-def main():
-    songs, study_rules = load_catalog()
-    genres = unique_values(songs, "genre")
-    moods = unique_values(songs, "mood")
-    task_types = sorted({rule["task_type"] for rule in study_rules})
-    focus_goals = sorted({rule["focus_goal"] for rule in study_rules})
+def option_index(options, preferred, fallback=0):
+    try:
+        return options.index(preferred)
+    except ValueError:
+        return fallback
 
+
+def get_query_code():
+    value = st.query_params.get("code")
+    if isinstance(value, list):
+        return value[0] if value else None
+    return value
+
+
+def load_spotify_songs(auth_code):
+    return import_spotify_tracks(
+        limit_top=50,
+        limit_recent=50,
+        auth_code=auth_code,
+    )
+
+
+def render_styles():
     st.markdown(
         """
         <style>
+        :root {
+            --ink: #10131c;
+            --panel: #e8edf0;
+            --chrome: #c7d1d7;
+            --chrome-dark: #6f7a84;
+            --screen: #162922;
+            --screen-glow: #b5ff7a;
+            --red: #f05a46;
+            --aqua: #2a8f91;
+            --gold: #e1b84d;
+        }
+
         .stApp {
-            background: linear-gradient(135deg, #f4f0e8 0%, #e8f1ee 52%, #f7f5ee 100%);
+            background:
+                radial-gradient(circle at 15% 0%, rgba(255,255,255,0.9), transparent 24rem),
+                linear-gradient(135deg, #d9e7e9 0%, #f1efe8 43%, #bcc9d1 100%);
+            color: var(--ink);
         }
-        div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.68);
-            border: 1px solid rgba(47, 79, 79, 0.14);
-            padding: 0.7rem 0.9rem;
-            border-radius: 8px;
+
+        header[data-testid="stHeader"] {
+            background: linear-gradient(180deg, #111723 0%, #070a10 100%);
+            border-bottom: 1px solid #3c4655;
         }
-        .playlist-track {
-            background: rgba(255, 255, 255, 0.74);
-            border: 1px solid rgba(34, 68, 64, 0.16);
-            border-left: 5px solid #2f6f73;
-            border-radius: 8px;
-            padding: 0.85rem 1rem;
-            margin-bottom: 0.75rem;
+
+        .block-container {
+            max-width: 1480px;
+            padding-top: 4.2rem;
+            padding-bottom: 3rem;
         }
-        .small-label {
-            color: #49615f;
+
+        [data-testid="stSidebar"] {
+            background:
+                linear-gradient(90deg, rgba(255,255,255,0.16) 0 1px, transparent 1px 9px),
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 5px),
+                linear-gradient(180deg, #313847 0%, #171d29 42%, #05080f 100%);
+            border-right: 3px solid #687481;
+            box-shadow:
+                inset -1px 0 0 rgba(255,255,255,0.24),
+                inset -18px 0 34px rgba(0,0,0,0.28),
+                10px 0 28px rgba(20,28,37,0.18);
+        }
+
+        [data-testid="stSidebar"] * {
+            color: #f4f7fb !important;
+        }
+
+        [data-testid="stSidebar"] > div:first-child {
+            padding-top: 2rem;
+        }
+
+        [data-testid="stSidebar"]::before {
+            content: "MIX CONSOLE";
+            display: block;
+            margin: 1rem 1.4rem 0.25rem;
+            padding: 0.55rem 0.75rem;
+            background:
+                linear-gradient(180deg, rgba(181,255,122,0.08), rgba(181,255,122,0.02)),
+                repeating-linear-gradient(0deg, rgba(181,255,122,0.14) 0 1px, transparent 1px 4px),
+                #111e19;
+            border: 2px solid #070d0b;
+            border-radius: 7px;
+            box-shadow: inset 0 0 16px rgba(0,0,0,0.72), 0 1px 0 rgba(255,255,255,0.24);
+            color: var(--screen-glow);
+            font-family: "Courier New", monospace;
             font-size: 0.86rem;
-            text-transform: uppercase;
+            font-weight: 800;
             letter-spacing: 0;
+            text-align: center;
+            text-shadow: 0 0 7px rgba(181,255,122,0.5);
+        }
+
+        [data-testid="stSidebar"] h2,
+        [data-testid="stSidebar"] h3 {
+            color: #ffffff !important;
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            font-size: 1.25rem;
+            margin-top: 1.2rem;
+            padding: 0.6rem 0.8rem;
+            background: linear-gradient(180deg, #dfe6eb 0%, #7e8a96 48%, #313b47 100%);
+            border: 1px solid #111720;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 #fff, 0 2px 8px rgba(0,0,0,0.34);
+            text-shadow: 0 1px 0 #000;
+        }
+
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] [data-testid="stWidgetLabel"] p {
+            color: #c9ff9a !important;
+            font-family: "Courier New", monospace;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 0 0 5px rgba(181,255,122,0.35);
+        }
+
+        [data-testid="stSidebar"] [data-baseweb="select"] > div,
+        [data-testid="stSidebar"] [data-baseweb="input"] > div {
+            background:
+                linear-gradient(180deg, rgba(181,255,122,0.035), rgba(181,255,122,0.01)),
+                linear-gradient(180deg, #101822 0%, #05080e 100%);
+            border: 1px solid #617083;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -8px 18px rgba(0,0,0,0.42), 0 1px 0 #000;
+            min-height: 48px;
+        }
+
+        [data-testid="stSidebar"] [data-baseweb="select"] span {
+            font-weight: 800;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stSlider"] {
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.14));
+            border: 1px solid rgba(116,130,145,0.55);
+            border-radius: 8px;
+            padding: 0.65rem 0.65rem 0.25rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+
+        [data-testid="stSidebar"] [role="slider"] {
+            background-color: var(--red) !important;
+            border-color: #ffafa3 !important;
+            box-shadow: 0 0 0 3px rgba(240,90,70,0.22), 0 0 10px rgba(240,90,70,0.5);
+        }
+
+        [data-testid="stSidebar"] [data-testid="stSlider"] [data-testid="stTickBar"] {
+            background: #05080e;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stToggle"] {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.07), rgba(0,0,0,0.18));
+            border: 1px solid rgba(116,130,145,0.5);
+            border-radius: 999px;
+            padding: 0.32rem 0.6rem;
+            margin-bottom: 0.35rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+
+        [data-testid="stSidebar"] hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(181,255,122,0.45), transparent);
+            margin: 1rem 0;
+        }
+
+        .player-shell {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(221,229,234,0.96) 42%, rgba(158,171,183,0.98) 100%);
+            border: 1px solid rgba(53, 66, 76, 0.42);
+            border-radius: 8px;
+            box-shadow:
+                0 24px 60px rgba(22,32,44,0.28),
+                inset 0 1px 0 #ffffff,
+                inset 0 -1px 0 rgba(44,54,67,0.42);
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .player-face {
+            background:
+                linear-gradient(180deg, #eff4f6 0%, #c5d0d7 52%, #8d9aa5 100%);
+            border: 1px solid #78848f;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 #fff, inset 0 -12px 30px rgba(28,39,49,0.22);
+            padding: 1.1rem;
+        }
+
+        .player-top {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 220px;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .lcd {
+            background:
+                linear-gradient(180deg, rgba(214,255,165,0.09), rgba(100,179,103,0.05)),
+                repeating-linear-gradient(0deg, rgba(181,255,122,0.07) 0 1px, transparent 1px 4px),
+                #13231e;
+            border: 2px solid #0b1411;
+            border-radius: 6px;
+            box-shadow: inset 0 0 22px rgba(18,0,0,0.65), 0 1px 0 #fff;
+            color: var(--screen-glow);
+            min-height: 150px;
+            padding: 1rem 1.15rem;
+            text-shadow: 0 0 6px rgba(181,255,122,0.5);
+        }
+
+        .lcd .kicker {
+            color: #8ce06d;
+            font-family: "Courier New", monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0;
+            text-transform: uppercase;
+        }
+
+        .lcd h1 {
+            color: #d8ff9e;
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            font-size: 2.55rem;
+            line-height: 1;
+            margin: 0.35rem 0 0.65rem;
+            text-shadow: 0 0 10px rgba(181,255,122,0.5);
+        }
+
+        .lcd p {
+            color: #bde98f;
+            margin: 0;
+            max-width: 820px;
+        }
+
+        .disc {
+            background:
+                radial-gradient(circle at 50% 50%, #f3f5f7 0 12%, #7f8994 13% 18%, #dbe2e5 19% 32%, #65707a 33% 35%, #e9eef1 36% 100%);
+            border: 1px solid #69737e;
+            border-radius: 50%;
+            min-height: 210px;
+            box-shadow: inset 0 2px 4px #fff, inset 0 -10px 18px rgba(19,26,36,0.35), 0 8px 18px rgba(16,22,30,0.25);
+        }
+
+        .control-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .control-button {
+            background: linear-gradient(180deg, #fbfcfd 0%, #c1cad1 48%, #7f8a95 100%);
+            border: 1px solid #5f6b76;
+            border-radius: 999px;
+            box-shadow: inset 0 1px 0 #fff, 0 2px 4px rgba(17,24,31,0.24);
+            color: #121822;
+            font-weight: 800;
+            min-width: 54px;
+            padding: 0.36rem 0.75rem;
+            text-align: center;
+        }
+
+        .control-button.red {
+            background: linear-gradient(180deg, #ffb4aa 0%, #f05a46 48%, #a82620 100%);
+            color: #fff;
+        }
+
+        .eq {
+            display: flex;
+            gap: 4px;
+            align-items: end;
+            height: 42px;
+            margin-left: auto;
+            min-width: 126px;
+        }
+
+        .eq span {
+            display: block;
+            width: 10px;
+            background: linear-gradient(180deg, #fff79c, #49ca79 62%, #1a766f);
+            border: 1px solid rgba(0,0,0,0.22);
+        }
+
+        .eq span:nth-child(1) { height: 18px; }
+        .eq span:nth-child(2) { height: 31px; }
+        .eq span:nth-child(3) { height: 24px; }
+        .eq span:nth-child(4) { height: 40px; }
+        .eq span:nth-child(5) { height: 27px; }
+        .eq span:nth-child(6) { height: 35px; }
+        .eq span:nth-child(7) { height: 21px; }
+
+        div[data-testid="stMetric"] {
+            background: linear-gradient(180deg, #22352e 0%, #101915 100%);
+            border: 2px solid #080d0b;
+            border-radius: 6px;
+            box-shadow: inset 0 0 14px rgba(0,0,0,0.75), 0 1px 0 #fff;
+            padding: 0.8rem 1rem;
+        }
+
+        div[data-testid="stMetric"] label,
+        div[data-testid="stMetric"] [data-testid="stMetricValue"] {
+            color: var(--screen-glow) !important;
+            font-family: "Courier New", monospace;
+            text-shadow: 0 0 6px rgba(181,255,122,0.4);
+        }
+
+        h2, h3 {
+            color: #111722 !important;
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            text-shadow: 0 1px 0 #fff;
+        }
+
+        .section-panel {
+            background: rgba(245,248,249,0.82);
+            border: 1px solid rgba(68,82,93,0.36);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 #fff, 0 8px 22px rgba(35,48,61,0.12);
+            padding: 1rem 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--ink);
+        }
+
+        .section-panel p {
+            color: #24313d;
+            margin-bottom: 0;
+        }
+
+        .playlist-track {
+            display: grid;
+            grid-template-columns: 70px minmax(0, 1fr);
+            gap: 1rem;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.96), rgba(229,235,239,0.96));
+            border: 1px solid rgba(74,88,100,0.42);
+            border-left: 6px solid var(--aqua);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 #fff, 0 5px 13px rgba(28,40,54,0.11);
+            color: var(--ink);
+            padding: 0.9rem;
+            margin-bottom: 0.72rem;
+        }
+
+        .track-rank {
+            background:
+                linear-gradient(180deg, #262d39 0%, #0e1219 100%);
+            border: 1px solid #000;
+            border-radius: 6px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+            color: #d8ff9e;
+            font-family: "Courier New", monospace;
+            font-weight: 800;
+            min-height: 66px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 6px rgba(181,255,122,0.42);
+        }
+
+        .playlist-track h4 {
+            color: #111722;
+            font-family: "Trebuchet MS", Verdana, sans-serif;
+            font-size: 1.1rem;
+            margin: 0 0 0.35rem;
+        }
+
+        .playlist-track p {
+            color: #33414c;
+            margin: 0.2rem 0;
+        }
+
+        .track-meta {
+            color: #60707c;
+            font-family: "Courier New", monospace;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+
+        [data-testid="stExpander"] {
+            background: rgba(244,248,249,0.88);
+            border: 1px solid rgba(63,76,88,0.38);
+            border-radius: 8px;
+            box-shadow: inset 0 1px 0 #fff;
+        }
+
+        [data-testid="stExpander"] p,
+        [data-testid="stExpander"] span {
+            color: #1d2730 !important;
+        }
+
+        .stAlert {
+            border-radius: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .player-top {
+                grid-template-columns: 1fr;
+            }
+
+            .disc {
+                min-height: 150px;
+                max-width: 150px;
+                margin: 0 auto;
+            }
+
+            .playlist-track {
+                grid-template-columns: 1fr;
+            }
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    st.title("RAG Study DJ")
-    st.caption("A study playlist assistant that retrieves songs and task guidance before generating a plan.")
+
+def render_player_header():
+    st.markdown(
+        """
+        <div class="player-shell">
+          <div class="player-face">
+            <div class="player-top">
+              <div class="lcd">
+                <div class="kicker">Now Playing // Retrieved Study Mix</div>
+                <h1>RAG Study DJ</h1>
+                <p>Builds a focused playlist by retrieving matching songs and study rules before generating the plan.</p>
+              </div>
+              <div class="disc"></div>
+            </div>
+            <div class="control-strip">
+              <div class="control-button red">REC</div>
+              <div class="control-button">PLAY</div>
+              <div class="control-button">STOP</div>
+              <div class="control-button">SKIP</div>
+              <div class="eq">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def main():
+    demo_songs, study_rules = load_catalog()
+    task_types = sorted({rule["task_type"] for rule in study_rules})
+    focus_goals = sorted({rule["focus_goal"] for rule in study_rules})
+
+    render_styles()
+    render_player_header()
+
+    active_songs = demo_songs
+    source_label = "Demo catalog"
+    source_notice = ""
 
     with st.sidebar:
+        st.header("Music Source")
+        source_mode = st.radio(
+            "Catalog source",
+            ["Demo catalog", "Spotify import"],
+            horizontal=False,
+        )
+
+        if source_mode == "Spotify import":
+            if not spotify_is_configured():
+                st.warning(
+                    "Spotify credentials are missing. Set SPOTIPY_CLIENT_ID, "
+                    "SPOTIPY_CLIENT_SECRET, and SPOTIPY_REDIRECT_URI to enable import."
+                )
+                source_notice = "Spotify is not configured, so the demo catalog is being used."
+            else:
+                auth_code = get_query_code()
+                st.link_button("Connect Spotify", get_spotify_auth_url())
+                if auth_code:
+                    st.caption("Spotify authorization code detected.")
+                if st.button("Import Spotify tracks", use_container_width=True):
+                    try:
+                        st.session_state["spotify_songs"] = load_spotify_songs(auth_code)
+                        st.session_state["spotify_error"] = ""
+                    except Exception as exc:
+                        st.session_state["spotify_songs"] = []
+                        st.session_state["spotify_error"] = str(exc)
+
+                spotify_songs = st.session_state.get("spotify_songs", [])
+                spotify_error = st.session_state.get("spotify_error", "")
+                if spotify_songs:
+                    active_songs = spotify_songs
+                    source_label = "Spotify import"
+                    st.success(f"Imported {len(spotify_songs)} Spotify tracks.")
+                elif spotify_error:
+                    st.warning(f"Spotify import failed: {spotify_error}")
+                    source_notice = "Spotify import failed, so the demo catalog is being used."
+                else:
+                    source_notice = "Connect Spotify and import tracks, or keep using the demo catalog."
+
+        genres = unique_values(active_songs, "genre")
+        moods = unique_values(active_songs, "mood")
+
         st.header("Study Session")
-        task_type = st.selectbox("Task type", task_types, index=task_types.index("coding"))
-        focus_goal = st.selectbox("Focus goal", focus_goals, index=focus_goals.index("deep focus"))
+        task_type = st.selectbox("Task type", task_types, index=option_index(task_types, "coding"))
+        focus_goal = st.selectbox("Focus goal", focus_goals, index=option_index(focus_goals, "deep focus"))
         session_minutes = st.slider("Session length", 15, 120, 45, step=5)
 
         st.header("Music Preferences")
-        preferred_genre = st.selectbox("Preferred genre", genres, index=genres.index("lofi"))
-        preferred_mood = st.selectbox("Preferred mood", moods, index=moods.index("focused"))
+        preferred_genre = st.selectbox("Preferred genre", genres, index=option_index(genres, "lofi"))
+        preferred_mood = st.selectbox("Preferred mood", moods, index=option_index(moods, "focused"))
         target_energy = st.slider("Target energy", 0.0, 1.0, 0.4, step=0.05)
         likes_acoustic = st.toggle("Prefer acoustic sound", value=True)
         allows_lyrics = st.toggle("Allow lyrics", value=False)
@@ -102,7 +568,7 @@ def main():
 
     result = build_study_playlist(
         request,
-        songs,
+        active_songs,
         study_rules,
         k=5,
         use_llm=use_llm,
@@ -113,21 +579,32 @@ def main():
 
     metric_cols = st.columns(3)
     metric_cols[0].metric("Retrieved Songs", len(retrieval["retrieved_songs"]))
-    metric_cols[1].metric("Study Rules", len(retrieval["retrieved_study_rules"]))
+    metric_cols[1].metric("Catalog Source", source_label)
     metric_cols[2].metric("AI Mode", "OpenAI" if use_llm and os.getenv("OPENAI_API_KEY") else "Fallback")
+
+    if source_notice:
+        st.info(source_notice)
 
     left, right = st.columns([1.25, 0.85], gap="large")
     with left:
         st.subheader("Generated Playlist Plan")
-        st.write(playlist["summary"])
+        st.markdown(
+            f"<div class='section-panel'><p>{escape(playlist['summary'])}</p></div>",
+            unsafe_allow_html=True,
+        )
+        if playlist.get("ai_notice"):
+            st.info(playlist["ai_notice"])
         for track in playlist["ordered_tracks"]:
             st.markdown(
                 f"""
                 <div class="playlist-track">
-                    <div class="small-label">Track {track['rank']}</div>
-                    <h4>{track['title']} - {track['artist']}</h4>
-                    <p>{track['reason']}</p>
-                    <p><strong>Pacing:</strong> {track['pacing_note']}</p>
+                    <div class="track-rank">{escape(str(track['rank'])).zfill(2)}</div>
+                    <div>
+                        <div class="track-meta">Track {escape(str(track['rank']))}</div>
+                        <h4>{escape(track['title'])} - {escape(track['artist'])}</h4>
+                        <p>{escape(track['reason'])}</p>
+                        <p><strong>Pacing:</strong> {escape(track['pacing_note'])}</p>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -135,9 +612,15 @@ def main():
 
     with right:
         st.subheader("Study Strategy")
-        st.write(playlist["study_strategy"])
+        st.markdown(
+            f"<div class='section-panel'><p>{escape(playlist['study_strategy'])}</p></div>",
+            unsafe_allow_html=True,
+        )
         st.subheader("Retrieved Context")
-        st.caption(retrieval["retrieval_explanation"])
+        st.markdown(
+            f"<div class='section-panel'><p>{escape(retrieval['retrieval_explanation'])}</p></div>",
+            unsafe_allow_html=True,
+        )
         with st.expander("Songs used as context", expanded=True):
             for item in retrieval["retrieved_songs"]:
                 song = item["song"]
@@ -145,6 +628,8 @@ def main():
                     f"**{song['title']}** by {song['artist']} "
                     f"({song['genre']}, {song['mood']}) - score {item['score']}"
                 )
+                if song.get("spotify_url"):
+                    st.caption(f"Spotify source: {song['source']} - {song['spotify_url']}")
                 st.caption(item["explanation"])
         with st.expander("Study rules used as context"):
             for rule in retrieval["retrieved_study_rules"]:
