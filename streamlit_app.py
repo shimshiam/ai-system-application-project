@@ -57,12 +57,11 @@ try:
 except ImportError:
     StreamlitSessionCacheHandler = None
 
-def load_spotify_songs(auth_code, code_verifier, cache_handler):
+def load_spotify_songs(auth_code, cache_handler):
     return import_spotify_tracks(
         limit_top=5,
         limit_recent=5,
         auth_code=auth_code,
-        code_verifier=code_verifier,
         cache_handler=cache_handler,
     )
 
@@ -556,24 +555,25 @@ def main():
         with st.container(border=True):
             st.subheader("Spotify Integration")
             if not spotify_is_configured():
-                st.warning("Spotify credentials are missing. Please provide your Client ID below to connect.")
+                st.warning("Spotify credentials are missing. Please provide your Client ID and Secret below to connect.")
                 client_id = st.text_input("Spotify Client ID", type="password")
+                client_secret = st.text_input("Spotify Client Secret", type="password")
                 if st.button("Save Credentials", use_container_width=True):
-                    if client_id:
+                    if client_id and client_secret:
                         os.environ["SPOTIPY_CLIENT_ID"] = client_id
+                        os.environ["SPOTIPY_CLIENT_SECRET"] = client_secret
                         os.environ["SPOTIPY_REDIRECT_URI"] = "http://127.0.0.1:8501"
                         st.rerun()
                     else:
-                        st.error("Please provide your Client ID.")
+                        st.error("Please provide both your Client ID and Client Secret.")
             else:
                 cache_handler = StreamlitSessionCacheHandler() if StreamlitSessionCacheHandler else None
                 auth_code = get_query_code()
                 if not st.session_state.get("spotify_songs"):
                     st.markdown('''<style>a[href^="https://accounts.spotify.com"] { background-color: #1DB954 !important; color: white !important; border: none !important; font-weight: bold !important; }</style>''', unsafe_allow_html=True)
                     if "spotify_auth_url" not in st.session_state:
-                        url, verifier = get_spotify_auth_url(cache_handler=cache_handler)
+                        url = get_spotify_auth_url(cache_handler=cache_handler)
                         st.session_state["spotify_auth_url"] = url
-                        st.session_state["spotify_code_verifier"] = verifier
                     st.link_button("Connect Spotify", st.session_state["spotify_auth_url"])
                 if auth_code:
                     st.caption("Spotify authorization code detected.")
@@ -581,7 +581,6 @@ def main():
                     try:
                         st.session_state["spotify_songs"] = load_spotify_songs(
                             auth_code, 
-                            st.session_state.get("spotify_code_verifier"),
                             cache_handler
                         )
                         st.session_state["spotify_error"] = ""

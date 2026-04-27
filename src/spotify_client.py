@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from typing import Any, Dict, Iterable, List, Optional
 
 
@@ -44,14 +45,15 @@ TITLE_MOOD_HINTS = {
 
 
 def spotify_is_configured() -> bool:
-    return bool(os.getenv("SPOTIPY_CLIENT_ID"))
+    return bool(os.getenv("SPOTIPY_CLIENT_ID")) and bool(os.getenv("SPOTIPY_CLIENT_SECRET"))
 
 
 def get_spotify_auth(cache_handler=None):
-    from spotipy.oauth2 import SpotifyPKCE
+    from spotipy.oauth2 import SpotifyOAuth
 
     kwargs = {
         "client_id": os.getenv("SPOTIPY_CLIENT_ID"),
+        "client_secret": os.getenv("SPOTIPY_CLIENT_SECRET"),
         "redirect_uri": os.getenv("SPOTIPY_REDIRECT_URI", DEFAULT_REDIRECT_URI),
         "scope": SPOTIFY_SCOPES,
         "open_browser": False,
@@ -61,18 +63,16 @@ def get_spotify_auth(cache_handler=None):
     else:
         kwargs["cache_path"] = ".spotify_cache"
 
-    return SpotifyPKCE(**kwargs)
+    return SpotifyOAuth(**kwargs)
 
 
-def get_spotify_auth_url(cache_handler=None) -> tuple[str, str]:
+def get_spotify_auth_url(cache_handler=None) -> str:
     auth = get_spotify_auth(cache_handler=cache_handler)
     url = auth.get_authorize_url()
-    return url, auth.code_verifier
-
+    return url
 
 def get_spotify_client(
     auth_code: Optional[str] = None,
-    code_verifier: Optional[str] = None,
     cache_handler=None
 ):
     if not spotify_is_configured():
@@ -81,8 +81,6 @@ def get_spotify_client(
     import spotipy
 
     auth = get_spotify_auth(cache_handler=cache_handler)
-    if code_verifier:
-        auth.code_verifier = code_verifier
         
     token_info = auth.get_cached_token()
     if not token_info and auth_code:
@@ -96,10 +94,9 @@ def import_spotify_tracks(
     limit_top: int = 50,
     limit_recent: int = 50,
     auth_code: Optional[str] = None,
-    code_verifier: Optional[str] = None,
     cache_handler=None,
 ) -> List[Dict[str, Any]]:
-    client = get_spotify_client(auth_code=auth_code, code_verifier=code_verifier, cache_handler=cache_handler)
+    client = get_spotify_client(auth_code=auth_code, cache_handler=cache_handler)
     imported: List[Dict[str, Any]] = []
     seen_ids = set()
 
