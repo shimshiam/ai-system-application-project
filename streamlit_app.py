@@ -47,12 +47,23 @@ def get_query_code():
         return value[0] if value else None
     return value
 
+try:
+    from spotipy.cache_handler import CacheHandler
+    class StreamlitSessionCacheHandler(CacheHandler):
+        def get_cached_token(self):
+            return st.session_state.get("spotify_token_info")
+        def save_token_to_cache(self, token_info):
+            st.session_state["spotify_token_info"] = token_info
+except ImportError:
+    StreamlitSessionCacheHandler = None
 
-def load_spotify_songs(auth_code):
+def load_spotify_songs(auth_code, code_verifier, cache_handler):
     return import_spotify_tracks(
         limit_top=5,
         limit_recent=5,
         auth_code=auth_code,
+        code_verifier=code_verifier,
+        cache_handler=cache_handler,
     )
 
 
@@ -555,16 +566,26 @@ def main():
                     else:
                         st.error("Please provide your Client ID.")
             else:
+                cache_handler = StreamlitSessionCacheHandler() if StreamlitSessionCacheHandler else None
                 auth_code = get_query_code()
                 if not st.session_state.get("spotify_songs"):
                     st.markdown('''<style>a[href^="https://accounts.spotify.com"] { background-color: #1DB954 !important; color: white !important; border: none !important; font-weight: bold !important; }</style>''', unsafe_allow_html=True)
-                    st.link_button("Connect Spotify", get_spotify_auth_url())
+                    if "spotify_auth_url" not in st.session_state:
+                        url, verifier = get_spotify_auth_url(cache_handler=cache_handler)
+                        st.session_state["spotify_auth_url"] = url
+                        st.session_state["spotify_code_verifier"] = verifier
+                    st.link_button("Connect Spotify", st.session_state["spotify_auth_url"])
                 if auth_code:
                     st.caption("Spotify authorization code detected.")
                 if st.button("Import Spotify tracks", use_container_width=True):
                     try:
-                        st.session_state["spotify_songs"] = load_spotify_songs(auth_code)
+                        st.session_state["spotify_songs"] = load_spotify_songs(
+                            auth_code, 
+                            st.session_state.get("spotify_code_verifier"),
+                            cache_handler
+                        )
                         st.session_state["spotify_error"] = ""
+                        st.query_params.clear()
                     except Exception as exc:
                         st.session_state["spotify_songs"] = []
                         st.session_state["spotify_error"] = str(exc)

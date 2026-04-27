@@ -47,32 +47,46 @@ def spotify_is_configured() -> bool:
     return bool(os.getenv("SPOTIPY_CLIENT_ID"))
 
 
-def get_spotify_auth():
+def get_spotify_auth(cache_handler=None):
     from spotipy.oauth2 import SpotifyPKCE
 
-    return SpotifyPKCE(
-        client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-        redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI", DEFAULT_REDIRECT_URI),
-        scope=SPOTIFY_SCOPES,
-        cache_path=".spotify_cache",
-        open_browser=False,
-    )
+    kwargs = {
+        "client_id": os.getenv("SPOTIPY_CLIENT_ID"),
+        "redirect_uri": os.getenv("SPOTIPY_REDIRECT_URI", DEFAULT_REDIRECT_URI),
+        "scope": SPOTIFY_SCOPES,
+        "open_browser": False,
+    }
+    if cache_handler:
+        kwargs["cache_handler"] = cache_handler
+    else:
+        kwargs["cache_path"] = ".spotify_cache"
+
+    return SpotifyPKCE(**kwargs)
 
 
-def get_spotify_auth_url() -> str:
-    return get_spotify_auth().get_authorize_url()
+def get_spotify_auth_url(cache_handler=None) -> tuple[str, str]:
+    auth = get_spotify_auth(cache_handler=cache_handler)
+    url = auth.get_authorize_url()
+    return url, auth.code_verifier
 
 
-def get_spotify_client(auth_code: Optional[str] = None):
+def get_spotify_client(
+    auth_code: Optional[str] = None,
+    code_verifier: Optional[str] = None,
+    cache_handler=None
+):
     if not spotify_is_configured():
         raise RuntimeError("Spotify credentials are not configured.")
 
     import spotipy
 
-    auth = get_spotify_auth()
+    auth = get_spotify_auth(cache_handler=cache_handler)
+    if code_verifier:
+        auth.code_verifier = code_verifier
+        
     token_info = auth.get_cached_token()
     if not token_info and auth_code:
-        token_info = auth.get_access_token(auth_code, as_dict=True)
+        token_info = auth.get_access_token(auth_code)
     if not token_info:
         raise RuntimeError("Spotify login is required before importing tracks.")
     return spotipy.Spotify(auth=token_info["access_token"])
@@ -82,8 +96,10 @@ def import_spotify_tracks(
     limit_top: int = 50,
     limit_recent: int = 50,
     auth_code: Optional[str] = None,
+    code_verifier: Optional[str] = None,
+    cache_handler=None,
 ) -> List[Dict[str, Any]]:
-    client = get_spotify_client(auth_code=auth_code)
+    client = get_spotify_client(auth_code=auth_code, code_verifier=code_verifier, cache_handler=cache_handler)
     imported: List[Dict[str, Any]] = []
     seen_ids = set()
 

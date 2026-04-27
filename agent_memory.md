@@ -4,78 +4,77 @@ This file is a shared working memory for planning, project context, decisions, a
 
 ## Current Project Context
 
-- Project: Music Recommender Simulation.
-- Core goal: Recommend songs from a small catalog using content-based filtering.
-- Main data source: `data/songs.csv`.
-- Main logic: `src/recommender.py`.
-- Main runner: `src/main.py`.
+- Project: Music Recommender Simulation (RAG Study DJ).
+- Core goal: Recommend songs from a catalog and study rules using content-based filtering and RAG principles.
+- Main data sources: `data/songs.csv`, `data/study_rules.csv`, and user-imported Spotify tracks.
+- Main logic: `src/study_dj.py` (RAG pipeline) and `src/spotify_client.py` (Spotify PKCE Integration).
+- Main runner: `streamlit_app.py` for the web UI, `src/main.py` for the CLI.
 - Tests: `tests/test_recommender.py`.
 - Documentation: `README.md`, `model_card.md`, `reflection.md`, and `docs/data-flow.md`.
 - Assets directory: `assets/`, intended for system architecture images and screenshots.
 
 ## Current Status
 
-- The recommender loads a catalog of songs, scores each song against a user profile, sorts results by score, and returns top recommendations.
-- The project currently supports multiple scoring strategies:
-  - Balanced
-  - Genre-first
-  - Mood-first
-  - Energy-focused
-- The README includes formatted screenshot/image sections.
-- The selected next direction is RAG Study DJ: a study playlist assistant that retrieves song data and task-specific study rules before generating a playlist plan.
+- The Streamlit app (`streamlit_app.py`) has been fully styled with a custom 2000s metallic hardware aesthetic. Recent CSS fixes ensure that all text (including buttons, alerts, and labels) is readable regardless of the user's Streamlit dark/light theme setting.
+- The Spotify Integration is active and uses the PKCE flow (`spotipy.oauth2.SpotifyPKCE`), which requires only a `SPOTIPY_CLIENT_ID` and a `SPOTIPY_REDIRECT_URI` (no client secret is needed). The `as_dict` error has been patched for compatibility with newer `spotipy` versions.
+- The app supports fallback deterministic planning or OpenAI generation if `OPENAI_API_KEY` is provided.
 
 ## Future Plan
 
-Implement and refine the RAG Study DJ app.
-
-Current implementation target:
-
-- Use `data/songs.csv` and `data/study_rules.csv` as the retrieved knowledge sources.
-- Use `src/study_dj.py` for the RAG pipeline, fallback planner, and optional OpenAI generation.
-- Use `streamlit_app.py` as the main user-facing app.
-- Keep `src/main.py` runnable for the original CLI demo.
+Refine and stabilize the RAG Study DJ app based on user feedback.
 
 Detailed next steps:
 
-1. Verify tests after dependencies are installed.
-2. Manually run the Streamlit app with `streamlit run streamlit_app.py`.
-3. Confirm changing task type changes retrieved rules and playlist output.
-4. Consider moving root screenshot files into `assets/` after the app work is stable.
+1. Move root screenshot files (`image-1.png`, etc.) into `assets/` to clean up the root directory.
+2. Expand the `SpotifyPKCE` integration if more features (like saving playlists back to Spotify) are requested.
+3. Enhance the OpenAI prompt for generating better playlist plans.
 
 Completion criteria:
 
-- The app retrieves relevant songs and study rules.
-- The generated playlist uses only retrieved songs.
-- The app works without an API key using deterministic fallback planning.
-- The app can use OpenAI generation when `OPENAI_API_KEY` is configured.
-- Spotify import is read-only and can replace the demo catalog with top/recent Spotify tracks when `SPOTIPY_CLIENT_ID`, `SPOTIPY_CLIENT_SECRET`, and `SPOTIPY_REDIRECT_URI` are configured.
+- The app reliably builds a focused study playlist using local demo tracks or user-imported Spotify tracks.
+- The user interface maintains a cohesive, highly-styled metallic theme without visual bugs.
+
+## Agent Code Review Protocol
+
+All future agents must strictly follow these protocols when reviewing or modifying the codebase:
+
+1. **Spotify API Guidelines**:
+   - **OpenAPI Schema**: Always refer to the Spotify OpenAPI spec for schema and endpoints. Do not guess endpoints or field names.
+   - **Authorization**: Strictly use the Authorization Code with PKCE flow for user data (never use Implicit Grant). Client Credentials are only for public data.
+   - **Redirect URIs**: Always use HTTPS redirect URIs (except `http://127.0.0.1` for local development).
+   - **Scopes**: Request only the minimum scopes needed. No broad preemptive scopes.
+   - **Tokens**: Manage securely. Never expose the Client Secret. Ensure token refresh logic is robust.
+   - **Rate Limits**: Implement exponential backoff for HTTP 429 rate limit responses.
+   - **Deprecated Endpoints**: Prefer modern endpoints (e.g., `/playlists/{id}/items` over `/playlists/{id}/tracks`).
+   - **Error Handling**: Handle all HTTP error codes and relay meaningful feedback to the user.
+2. **UI & CSS Theme Integrity**:
+   - The application relies heavily on specific structural CSS overrides to mimic a physical 2000s mixer. When modifying `streamlit_app.py`, ensure new widgets are properly wrapped or targeted (e.g. using `nth-of-type` or `:has()`) so they match the metallic style and remain readable.
+3. **Dependency Compatibility**:
+   - Verify library updates (like `spotipy` or `streamlit`) do not break existing method signatures or standard DOM test IDs.
+4. **General Practices**:
+   - Preserve existing documentation and docstrings unless explicitly told otherwise.
+   - Do not assume new product directions unless explicitly guided by the user.
 
 ## Retained Decisions
 
 - Keep project changes scoped and readable.
 - Use `assets/` for architecture diagrams, screenshots, and other visual project files.
-- Do not assume a new product direction until one is explicitly chosen.
+- The Spotify integration will exclusively use the PKCE flow to avoid exposing client secrets in a client-side Streamlit application context.
 
 ## Observations And Possible Improvements
 
 - `src/recommender.py` has duplicated scoring logic across the different strategy classes.
 - The project uses both dictionary-based song data and dataclass-based song data, which could be unified later.
 - `docs/data-flow.md` may need updates if scoring weights change.
-- User energy values are expected to be between `0.0` and `1.0`, but the current examples include an out-of-range test profile.
-- `pytest` is listed in `requirements.txt`, but it was not installed in the active shell environment during the last check.
-- `openai` and `tabulate` are now listed in `requirements.txt` for the AI app and formatted CLI output.
-- `spotipy` is now listed in `requirements.txt` for read-only Spotify personalization.
 
 ## Reflection Notes
 
 - Simple scoring weights have a large effect on recommendation behavior.
 - Energy weighting currently has a strong influence on rankings.
-- Future project direction should decide whether this stays a classroom simulation or becomes a more polished app/tool.
+- The custom CSS required a highly specific structural targeting approach due to changes in Streamlit's container DOM generation.
 
 ## Open Questions
 
-- Should the next phase focus on code cleanup, documentation, UI, testing, or model behavior?
-- Should screenshots currently in the project root be moved into `assets/`?
 - Should the recommender use one consistent data model instead of both dictionaries and dataclasses?
-- Should the scoring strategy system be simplified into configurable weights?
 - Should the Streamlit app later support user-uploaded notes as an additional RAG source?
+- Are we ready to implement token refresh logic or rate limit backoffs for the Spotify API?
