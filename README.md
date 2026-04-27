@@ -103,21 +103,45 @@ python -m src.main
 
 Phase 3 Output:
 
-| | |
-|---|---|
-| ![alt text](image.png) | ![alt text](image-1.png) |
-| ![alt text](image-2.png) | ![alt text](image-3.png) |
-| ![alt text](image-4.png) | ![alt text](image-5.png) |
+<table>
+  <tr>
+    <td align="center"><img src="image.png" width="420" /></td>
+    <td align="center"><img src="image-1.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-2.png" width="420" /></td>
+    <td align="center"><img src="image-3.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-4.png" width="420" /></td>
+    <td align="center"><img src="image-5.png" width="420" /></td>
+  </tr>
+</table>
 
 Phase 4 Output:
 
-| | |
-|---|---|
-| ![alt text](image-6.png) | ![alt text](image-7.png) |
-| ![alt text](image-8.png) | ![alt text](image-9.png) |
-| ![alt text](image-10.png) | ![alt text](image-11.png) |
-| ![alt text](image-12.png) | ![alt text](image-13.png) |
-| ![alt text](image-14.png) | ![alt text](image-15.png) |
+<table>
+  <tr>
+    <td align="center"><img src="image-6.png" width="420" /></td>
+    <td align="center"><img src="image-7.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-8.png" width="420" /></td>
+    <td align="center"><img src="image-9.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-10.png" width="420" /></td>
+    <td align="center"><img src="image-11.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-12.png" width="420" /></td>
+    <td align="center"><img src="image-13.png" width="420" /></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="image-14.png" width="420" /></td>
+    <td align="center"><img src="image-15.png" width="420" /></td>
+  </tr>
+</table>
 
 ### Running Tests
 
