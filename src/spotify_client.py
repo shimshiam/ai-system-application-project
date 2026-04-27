@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 
 SPOTIFY_SCOPES = "user-top-read user-read-recently-played"
-DEFAULT_REDIRECT_URI = "http://localhost:8501"
+DEFAULT_REDIRECT_URI = "http://127.0.0.1:8501"
 
 GENRE_MOOD_HINTS = {
     "ambient": ("ambient", "chill", 0.30, 0.88),
@@ -44,18 +44,14 @@ TITLE_MOOD_HINTS = {
 
 
 def spotify_is_configured() -> bool:
-    return all(
-        os.getenv(name)
-        for name in ("SPOTIPY_CLIENT_ID", "SPOTIPY_CLIENT_SECRET")
-    )
+    return bool(os.getenv("SPOTIPY_CLIENT_ID"))
 
 
 def get_spotify_auth():
-    from spotipy.oauth2 import SpotifyOAuth
+    from spotipy.oauth2 import SpotifyPKCE
 
-    return SpotifyOAuth(
+    return SpotifyPKCE(
         client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-        client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
         redirect_uri=os.getenv("SPOTIPY_REDIRECT_URI", DEFAULT_REDIRECT_URI),
         scope=SPOTIFY_SCOPES,
         cache_path=".spotify_cache",
