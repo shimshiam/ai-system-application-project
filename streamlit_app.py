@@ -1536,8 +1536,9 @@ def main():
                     allows_lyrics = st.checkbox("Vocal Pass (Lyrics)", value=False)
                 with col_b:
                     allows_explicit = st.checkbox("Explicit Pass", value=False)
-                    use_llm = st.checkbox("Enable LLM Brain", value=bool(os.getenv("OPENAI_API_KEY")))
-            render_module_footer("Output Matrix", live_leds=2 + int(bool(use_llm and os.getenv("OPENAI_API_KEY"))))
+                    from src.llm_client import llm_is_available
+                    use_llm = st.checkbox("Enable LLM Brain", value=llm_is_available())
+            render_module_footer("Output Matrix", live_leds=2 + int(bool(use_llm and llm_is_available())))
 
     request = StudyDJRequest(
         task_type=task_type,
@@ -1572,7 +1573,7 @@ def main():
     metric_cols = st.columns(3)
     metric_cols[0].metric("Retrieved Songs", len(retrieval["retrieved_songs"]))
     metric_cols[1].metric("Catalog Source", source_label)
-    metric_cols[2].metric("AI Mode", "OpenAI" if use_llm and os.getenv("OPENAI_API_KEY") else "Fallback")
+    metric_cols[2].metric("AI Mode", "LLM" if use_llm and llm_is_available() else "Fallback")
 
     if source_notice:
         st.info(source_notice)

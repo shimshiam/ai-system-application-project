@@ -200,14 +200,16 @@ def generate_playlist_plan(
     model: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Generate a RAG-grounded playlist plan with an LLM or deterministic fallback."""
-    if use_llm and os.getenv("OPENAI_API_KEY"):
+    from src.llm_client import llm_is_available
+
+    if use_llm and llm_is_available():
         try:
             plan = _generate_with_openai(request, retrieval, model=model)
             return _ensure_plan_uses_retrieved_songs(plan, retrieval, request)
         except Exception as exc:
             fallback = generate_fallback_playlist_plan(request, retrieval)
             fallback["ai_notice"] = (
-                "OpenAI generation was unavailable, so the deterministic fallback planner was used."
+                f"LLM generation failed ({type(exc).__name__}), so the deterministic fallback planner was used."
             )
             return fallback
     return generate_fallback_playlist_plan(request, retrieval)
@@ -278,10 +280,9 @@ def _generate_with_openai(
     retrieval: Dict[str, Any],
     model: Optional[str] = None,
 ) -> Dict[str, Any]:
-    from openai import OpenAI
+    from src.llm_client import chat_json
 
-    client = OpenAI()
-    selected_model = model or os.getenv("AI_MODEL", "gpt-5")
+    num_songs = len(retrieval["retrieved_songs"])
     context = {
         "request": asdict(request),
         "retrieved_study_rules": retrieval["retrieved_study_rules"],
@@ -299,24 +300,37 @@ def _generate_with_openai(
             for item in retrieval["retrieved_songs"]
         ],
     }
-    response = client.responses.create(
-        model=selected_model,
-        instructions=(
-            "You are Study DJ, an AI playlist planner. Use only the retrieved songs and "
-            "study rules in the provided JSON. Return a concise JSON object that matches "
-            "the schema. Do not invent songs."
-        ),
-        input=json.dumps(context, indent=2),
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": "study_playlist_plan",
-                "schema": PLAYLIST_SCHEMA,
-                "strict": True,
-            }
-        },
+
+    system_prompt = (
+        "You are Study DJ, an AI playlist planner for study sessions.\n\n"
+        "TASK: Build an ordered playlist plan from ONLY the retrieved songs provided.\n\n"
+        "RULES:\n"
+        f"- The session is {request.session_minutes} minutes long.\n"
+        f"- You have {num_songs} retrieved songs. Use ALL of them in your ordered_tracks.\n"
+        f"- The user wants to: {request.task_type.replace('_', ' ')} with a goal of {request.focus_goal}.\n"
+        f"- Target energy level: {request.target_energy:.2f} (0=calm, 1=intense).\n"
+        f"- Preferred genre: {request.preferred_genre}, preferred mood: {request.preferred_mood}.\n\n"
+        "PACING STRATEGY:\n"
+        "- Start with a warm-up track that eases the listener into focus.\n"
+        "- Build energy gradually through the first quarter.\n"
+        "- Maintain peak focus energy through the middle of the session.\n"
+        "- Wind down in the final quarter to prepare for a break.\n"
+        "- Each track's pacing_note should explain its role in this arc.\n\n"
+        "OUTPUT FORMAT (return valid JSON with exactly these keys):\n"
+        '{\n'
+        '  "summary": "1-2 sentence overview of the playlist",\n'
+        '  "ordered_tracks": [\n'
+        '    {"rank": 1, "title": "...", "artist": "...", "reason": "...", "pacing_note": "..."},\n'
+        '    ...\n'
+        '  ],\n'
+        '  "study_strategy": "Concrete advice on how to study during this playlist.",\n'
+        '  "source_context_used": ["song:Title by Artist", "rule:type / goal", ...]\n'
+        '}\n\n'
+        "Do NOT invent songs. Use ONLY titles and artists from the retrieved_songs list.\n"
+        "Return ONLY valid JSON, no other text."
     )
-    return json.loads(response.output_text)
+
+    return chat_json(system_prompt, json.dumps(context, indent=2), model=model)
 
 
 def _ensure_plan_uses_retrieved_songs(

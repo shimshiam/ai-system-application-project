@@ -304,7 +304,9 @@ def classify_spotify_tracks(
     tracks: List[Dict[str, Any]],
     use_llm: bool = True,
 ) -> List[Dict[str, Any]]:
-    if use_llm and os.getenv("OPENAI_API_KEY") and tracks:
+    from src.llm_client import llm_is_available
+
+    if use_llm and llm_is_available() and tracks:
         try:
             classifications = _classify_with_openai(tracks)
             return _merge_classifications(tracks, classifications)
@@ -391,9 +393,8 @@ def _fallback_classify(track: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    from openai import OpenAI
+    from src.llm_client import chat_json
 
-    client = OpenAI()
     payload = [
         {
             "spotify_id": track.get("spotify_id"),
@@ -406,55 +407,30 @@ def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         }
         for track in tracks
     ]
-    response = client.responses.create(
-        model=os.getenv("AI_MODEL", "gpt-5"),
-        instructions=(
-            "Classify Spotify tracks for a study playlist recommender. Return only JSON. "
-            "Use broad genres and moods compatible with the existing app."
-        ),
-        input=json.dumps(payload, indent=2),
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": "spotify_track_classifications",
-                "schema": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "tracks": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": False,
-                                "properties": {
-                                    "spotify_id": {"type": "string"},
-                                    "genre": {"type": "string"},
-                                    "mood": {"type": "string"},
-                                    "energy": {"type": "number"},
-                                    "acousticness": {"type": "number"},
-                                    "detailed_mood_tags": {
-                                        "type": "array",
-                                        "items": {"type": "string"},
-                                    },
-                                },
-                                "required": [
-                                    "spotify_id",
-                                    "genre",
-                                    "mood",
-                                    "energy",
-                                    "acousticness",
-                                    "detailed_mood_tags",
-                                ],
-                            },
-                        }
-                    },
-                    "required": ["tracks"],
-                },
-                "strict": True,
-            }
-        },
+
+    system_prompt = (
+        "Classify each Spotify track for a study playlist recommender.\n\n"
+        "For each track, return:\n"
+        "- genre: Use one of these broad genres: "
+        "pop, rock, alt rock, metal, punk, hip-hop, r&b, blues, jazz, "
+        "classical, folk, country, lofi, ambient, electronic, edm, "
+        "latin, indie pop, funk, reggae, afrobeat, world.\n"
+        "- mood: Use one of these moods: happy, chill, focused, relaxed, "
+        "energetic, intense, confident, peaceful, moody, dreamy, romantic, "
+        "soulful, aggressive, nostalgic.\n"
+        "- energy: Float 0.0 to 1.0 (0=very calm, 0.3=chill, 0.5=moderate, "
+        "0.7=upbeat, 1.0=max intensity).\n"
+        "- acousticness: Float 0.0 to 1.0 (0=electronic, 1.0=acoustic).\n"
+        "- detailed_mood_tags: 2-4 descriptive mood tags.\n\n"
+        "Use your knowledge of these artists and songs to classify accurately.\n\n"
+        "Return JSON in this exact format:\n"
+        '{"tracks": [{"spotify_id": "...", "genre": "...", "mood": "...", '
+        '"energy": 0.5, "acousticness": 0.5, "detailed_mood_tags": ["..."]}, ...]}\n'
+        "Return ONLY valid JSON, no other text."
     )
-    return json.loads(response.output_text)["tracks"]
+
+    result = chat_json(system_prompt, json.dumps(payload, indent=2))
+    return result["tracks"]
 
 
 def _merge_classifications(
