@@ -243,9 +243,7 @@ def generate_fallback_playlist_plan(
     return {
         "summary": summary,
         "ordered_tracks": ordered_tracks,
-        "track_reasons": {
-            track["title"]: track["reason"] for track in ordered_tracks
-        },
+        "track_reasons": _build_track_reasons(ordered_tracks),
         "study_strategy": f"{study_strategy} {primary_rule.get('pacing', '')}".strip(),
         "source_context_used": _source_context_used(retrieval),
     }
@@ -320,14 +318,14 @@ def _ensure_plan_uses_retrieved_songs(
     retrieval: Dict[str, Any],
     request: StudyDJRequest,
 ) -> Dict[str, Any]:
-    retrieved_by_title = {
-        item["song"]["title"]: item for item in retrieval.get("retrieved_songs", [])
+    retrieved_by_key = {
+        _track_identity_key(item["song"]): item for item in retrieval.get("retrieved_songs", [])
     }
     validated_tracks = []
     for track in plan.get("ordered_tracks", []):
-        title = track.get("title")
-        if title in retrieved_by_title:
-            item = retrieved_by_title[title]
+        track_key = _track_identity_key(track)
+        if track_key in retrieved_by_key:
+            item = retrieved_by_key[track_key]
             song = item["song"]
             validated_tracks.append({
                 "rank": len(validated_tracks) + 1,
@@ -337,18 +335,16 @@ def _ensure_plan_uses_retrieved_songs(
                 "pacing_note": track.get("pacing_note") or "Use this track where its energy best fits.",
             })
 
-    if len(validated_tracks) < len(retrieved_by_title):
+    if len(validated_tracks) < len(retrieved_by_key):
         fallback = generate_fallback_playlist_plan(request, retrieval)
-        existing_titles = {track["title"] for track in validated_tracks}
+        existing_keys = {_track_identity_key(track) for track in validated_tracks}
         for track in fallback["ordered_tracks"]:
-            if track["title"] not in existing_titles:
+            if _track_identity_key(track) not in existing_keys:
                 track["rank"] = len(validated_tracks) + 1
                 validated_tracks.append(track)
 
     plan["ordered_tracks"] = validated_tracks
-    plan["track_reasons"] = {
-        track["title"]: track["reason"] for track in validated_tracks
-    }
+    plan["track_reasons"] = _build_track_reasons(validated_tracks)
     plan["source_context_used"] = _source_context_used(retrieval)
     return plan
 
@@ -377,6 +373,39 @@ def _source_context_used(retrieval: Dict[str, Any]) -> List[str]:
     for rule in retrieval.get("retrieved_study_rules", []):
         sources.append(f"rule:{rule['task_type']} / {rule['focus_goal']}")
     return sources
+
+
+def _track_identity_key(track: Dict[str, Any]) -> str:
+    spotify_id = (track.get("spotify_id") or "").strip()
+    if spotify_id:
+        return f"spotify:{spotify_id}"
+
+    title = (track.get("title") or "").strip().casefold()
+    artist = (track.get("artist") or "").strip().casefold()
+    return f"catalog:{title}|{artist}"
+
+
+def _build_track_reasons(ordered_tracks: List[Dict[str, Any]]) -> Dict[str, str]:
+    title_counts: Dict[str, int] = {}
+    for track in ordered_tracks:
+        title = track["title"]
+        title_counts[title] = title_counts.get(title, 0) + 1
+
+    used_labels: Dict[str, int] = {}
+    track_reasons: Dict[str, str] = {}
+    for track in ordered_tracks:
+        label = track["title"]
+        if title_counts[label] > 1:
+            label = f"{track['title']} - {track['artist']}"
+
+        suffix = used_labels.get(label, 0)
+        used_labels[label] = suffix + 1
+        if suffix:
+            label = f"{label} ({suffix + 1})"
+
+        track_reasons[label] = track["reason"]
+
+    return track_reasons
 
 
 def default_data_paths() -> Dict[str, Path]:

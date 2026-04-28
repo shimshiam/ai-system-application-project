@@ -589,17 +589,10 @@ def main():
         with st.container(border=True):
             st.subheader("Module 1: Source Input")
             if not spotify_is_configured():
-                st.warning("Spotify credentials missing. Connect below to synthesize your own library.")
-                client_id = st.text_input("Spotify Client ID", type="password")
-                client_secret = st.text_input("Spotify Client Secret", type="password")
-                if st.button("Save Credentials", use_container_width=True):
-                    if client_id and client_secret:
-                        os.environ["SPOTIPY_CLIENT_ID"] = client_id
-                        os.environ["SPOTIPY_CLIENT_SECRET"] = client_secret
-                        os.environ["SPOTIPY_REDIRECT_URI"] = "http://127.0.0.1:8501"
-                        st.rerun()
-                    else:
-                        st.error("Please provide both your Client ID and Client Secret.")
+                st.warning(
+                    "Spotify import is unavailable until the server is configured with "
+                    "`SPOTIPY_CLIENT_ID` and an allowed redirect URI."
+                )
             else:
                 cache_handler = StreamlitSessionCacheHandler() if StreamlitSessionCacheHandler else None
                 auth_code = get_query_code()

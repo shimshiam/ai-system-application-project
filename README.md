@@ -6,7 +6,7 @@ The application features a unique, custom 2000s metallic hardware aesthetic for 
 
 ## ✨ Features
 
-- **Spotify PKCE Integration**: Securely connect to your Spotify account using the PKCE authorization flow to import your top and recently played tracks. No Client Secret is required to be exposed in the client-side code.
+- **Spotify PKCE Integration**: Securely connect to your Spotify account using the PKCE authorization flow to import your top and recently played tracks. The app uses a server-configured Spotify Client ID and never asks end users for a Client Secret.
 - **Retrieval-Augmented Generation (RAG)**: Combines user preferences with retrieved study rules to ensure the generated playlist matches the desired pacing and target energy levels.
 - **Hybrid AI Pipeline**: Leverages OpenAI models (if an API key is provided) to intelligently classify unknown Spotify tracks, synthesize the final tracklist with justifications, and provide a holistic study strategy.
 - **Smart Fallback Mechanism**: Gracefully falls back to deterministic planning and title-based genre/mood assignments if API restrictions occur (e.g., `403 Forbidden` from Spotify) or if strict user constraints filter out too many tracks.
@@ -51,7 +51,7 @@ The application features a unique, custom 2000s metallic hardware aesthetic for 
 
 2. **Create and activate a virtual environment (recommended):**
    ```bash
-   python -m venv .venv
+   python3 -m venv .venv
    source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
    ```
 
@@ -62,7 +62,7 @@ The application features a unique, custom 2000s metallic hardware aesthetic for 
 
 ### Configuration
 
-You can configure the application in the UI or by setting environment variables beforehand. 
+Configure Spotify and optional OpenAI access on the server before starting the app.
 
 If setting environment variables:
 ```bash
@@ -85,17 +85,17 @@ The app will open automatically in your browser at `http://localhost:8501`.
 
 ## 🎮 Usage
 
-1. **Connect Spotify (Optional)**: In the "Mix Console" section, enter your Spotify credentials to connect your account and import your tracks. You can also proceed using the built-in demo catalog.
+1. **Connect Spotify (Optional)**: If the server is configured with `SPOTIPY_CLIENT_ID`, use the "Connect Spotify" button in the "Mix Console" section to authorize your account and import your tracks. You can also proceed using the built-in demo catalog.
 2. **Set Study Session**: Choose your task type (e.g., coding, reading), focus goal, and desired session length.
 3. **Configure Preferences**: Set your preferred genre, mood, target energy, and toggle advanced filters (Acoustic, Lyrics, Explicit).
 4. **Generate**: The Vibe Synthesizer will immediately compute and display your retrieved context, the generated playlist plan, and a custom study strategy.
 
 ## 🧪 Testing
 
-Run the test suite using `pytest`:
+Run the test suite using:
 
 ```bash
-pytest tests/
+PYTHONPATH=. pytest -q
 ```
 
 ## 📝 License

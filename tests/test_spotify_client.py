@@ -2,6 +2,7 @@ from src.recommender import load_songs
 import src.spotify_client as spotify_client
 from src.spotify_client import (
     classify_spotify_tracks,
+    get_spotify_auth,
     normalize_spotify_track,
     spotify_is_configured,
 )
@@ -68,13 +69,46 @@ def test_import_spotify_tracks_dedupes_top_and_recent(monkeypatch):
         def artists(self, artist_ids):
             return {"artists": [{"id": "artist-1", "genres": ["lo-fi beats"]}]}
 
-    monkeypatch.setattr(spotify_client, "get_spotify_client", lambda auth_code=None: FakeSpotify())
+    monkeypatch.setattr(
+        spotify_client,
+        "get_spotify_client",
+        lambda auth_code=None, cache_handler=None: FakeSpotify(),
+    )
     songs = spotify_client.import_spotify_tracks(limit_top=50, limit_recent=50)
 
     assert len(songs) == 1
     assert songs[0]["spotify_id"] == "same-id"
     assert songs[0]["source"] == "top_track"
     assert songs[0]["title"] == "Top Version"
+
+
+def test_import_spotify_tracks_forwards_auth_code_and_cache_handler(monkeypatch):
+    calls = {}
+
+    class FakeSpotify:
+        def current_user_top_tracks(self, limit, time_range):
+            return {"items": []}
+
+        def current_user_recently_played(self, limit):
+            return {"items": []}
+
+        def artists(self, artist_ids):
+            return {"artists": []}
+
+    def fake_get_spotify_client(auth_code=None, cache_handler=None):
+        calls["auth_code"] = auth_code
+        calls["cache_handler"] = cache_handler
+        return FakeSpotify()
+
+    monkeypatch.setattr(spotify_client, "get_spotify_client", fake_get_spotify_client)
+    cache_handler = object()
+
+    spotify_client.import_spotify_tracks(auth_code="auth-code", cache_handler=cache_handler)
+
+    assert calls == {
+        "auth_code": "auth-code",
+        "cache_handler": cache_handler,
+    }
 
 
 def test_fallback_classification_returns_complete_recommender_fields():
@@ -131,6 +165,32 @@ def test_spotify_tracks_work_with_study_playlist_pipeline():
 
 def test_missing_spotify_credentials_is_false_without_env(monkeypatch):
     monkeypatch.delenv("SPOTIPY_CLIENT_ID", raising=False)
-    monkeypatch.delenv("SPOTIPY_CLIENT_SECRET", raising=False)
 
     assert spotify_is_configured() is False
+
+
+def test_spotify_is_configured_true_with_client_id_only(monkeypatch):
+    monkeypatch.setenv("SPOTIPY_CLIENT_ID", "client-id")
+    monkeypatch.delenv("SPOTIPY_CLIENT_SECRET", raising=False)
+
+    assert spotify_is_configured() is True
+
+
+def test_get_spotify_auth_uses_pkce(monkeypatch):
+    captured = {}
+
+    class FakeSpotifyPKCE:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+    monkeypatch.setenv("SPOTIPY_CLIENT_ID", "client-id")
+    monkeypatch.delenv("SPOTIPY_CLIENT_SECRET", raising=False)
+    monkeypatch.setattr("spotipy.oauth2.SpotifyPKCE", FakeSpotifyPKCE)
+
+    auth = get_spotify_auth()
+
+    assert isinstance(auth, FakeSpotifyPKCE)
+    assert captured["client_id"] == "client-id"
+    assert captured["scope"] == spotify_client.SPOTIFY_SCOPES
+    assert captured["redirect_uri"] == spotify_client.DEFAULT_REDIRECT_URI
+    assert "client_secret" not in captured

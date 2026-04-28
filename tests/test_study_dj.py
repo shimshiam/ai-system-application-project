@@ -1,6 +1,7 @@
 from src.recommender import load_songs
 from src.study_dj import (
     StudyDJRequest,
+    _ensure_plan_uses_retrieved_songs,
     build_study_playlist,
     default_data_paths,
     generate_fallback_playlist_plan,
@@ -103,3 +104,115 @@ def test_main_pipeline_integrates_retrieval_and_generation_without_api():
     assert {
         track["title"] for track in result["playlist"]["ordered_tracks"]
     } <= retrieved_titles
+
+
+def test_plan_validation_keeps_duplicate_titles_with_different_artists():
+    request = make_request()
+    retrieval = {
+        "retrieved_songs": [
+            {
+                "song": {"title": "Intro", "artist": "Artist A", "energy": 0.3},
+                "score": 1.0,
+                "explanation": "Artist A fit",
+            },
+            {
+                "song": {"title": "Intro", "artist": "Artist B", "energy": 0.5},
+                "score": 0.9,
+                "explanation": "Artist B fit",
+            },
+        ],
+        "retrieved_study_rules": [],
+    }
+    plan = {
+        "summary": "summary",
+        "ordered_tracks": [
+            {"rank": 1, "title": "Intro", "artist": "Artist A", "reason": "A", "pacing_note": "start"},
+            {"rank": 2, "title": "Intro", "artist": "Artist B", "reason": "B", "pacing_note": "end"},
+        ],
+        "study_strategy": "strategy",
+        "source_context_used": [],
+    }
+
+    validated = _ensure_plan_uses_retrieved_songs(plan, retrieval, request)
+
+    assert [(track["title"], track["artist"]) for track in validated["ordered_tracks"]] == [
+        ("Intro", "Artist A"),
+        ("Intro", "Artist B"),
+    ]
+    assert set(validated["track_reasons"]) == {"Intro - Artist A", "Intro - Artist B"}
+
+
+def test_plan_validation_prefers_spotify_id_when_available():
+    request = make_request()
+    retrieval = {
+        "retrieved_songs": [
+            {
+                "song": {"title": "Intro", "artist": "Artist A", "spotify_id": "spotify-a", "energy": 0.3},
+                "score": 1.0,
+                "explanation": "Artist A fit",
+            },
+            {
+                "song": {"title": "Intro", "artist": "Artist B", "spotify_id": "spotify-b", "energy": 0.5},
+                "score": 0.9,
+                "explanation": "Artist B fit",
+            },
+        ],
+        "retrieved_study_rules": [],
+    }
+    plan = {
+        "summary": "summary",
+        "ordered_tracks": [
+            {
+                "rank": 1,
+                "title": "Wrong Title",
+                "artist": "Wrong Artist",
+                "spotify_id": "spotify-b",
+                "reason": "B",
+                "pacing_note": "end",
+            },
+            {
+                "rank": 2,
+                "title": "Another Wrong Title",
+                "artist": "Another Wrong Artist",
+                "spotify_id": "spotify-a",
+                "reason": "A",
+                "pacing_note": "start",
+            },
+        ],
+        "study_strategy": "strategy",
+        "source_context_used": [],
+    }
+
+    validated = _ensure_plan_uses_retrieved_songs(plan, retrieval, request)
+
+    assert [(track["title"], track["artist"]) for track in validated["ordered_tracks"]] == [
+        ("Intro", "Artist B"),
+        ("Intro", "Artist A"),
+    ]
+
+
+def test_plan_validation_falls_back_to_title_and_artist_for_catalog_tracks():
+    request = make_request()
+    retrieval = {
+        "retrieved_songs": [
+            {
+                "song": {"title": "Focus Flow", "artist": "Luna Drift", "energy": 0.4},
+                "score": 1.0,
+                "explanation": "Great fit",
+            }
+        ],
+        "retrieved_study_rules": [],
+    }
+    plan = {
+        "summary": "summary",
+        "ordered_tracks": [
+            {"rank": 1, "title": "Focus Flow", "artist": "Luna Drift", "reason": "fit", "pacing_note": "start"}
+        ],
+        "study_strategy": "strategy",
+        "source_context_used": [],
+    }
+
+    validated = _ensure_plan_uses_retrieved_songs(plan, retrieval, request)
+
+    assert validated["ordered_tracks"][0]["title"] == "Focus Flow"
+    assert validated["ordered_tracks"][0]["artist"] == "Luna Drift"

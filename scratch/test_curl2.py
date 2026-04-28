@@ -2,12 +2,14 @@ import os
 import requests
 from spotipy.oauth2 import SpotifyClientCredentials
 
-os.environ["SPOTIPY_CLIENT_ID"] = "72ecae9eae00436f99b083a423599598"
-os.environ["SPOTIPY_CLIENT_SECRET"] = "b9f690a56f78486a98a22e27ca5d424f"
+client_id = os.getenv("SPOTIPY_CLIENT_ID")
+client_secret = os.getenv("SPOTIPY_CLIENT_SECRET")
+if not client_id or not client_secret:
+    raise RuntimeError("Set SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET before running this script.")
 
 cc = SpotifyClientCredentials(
-    client_id=os.environ["SPOTIPY_CLIENT_ID"],
-    client_secret=os.environ["SPOTIPY_CLIENT_SECRET"]
+    client_id=client_id,
+    client_secret=client_secret
 )
 token = cc.get_access_token(as_dict=False)
 

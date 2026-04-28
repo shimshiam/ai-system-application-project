@@ -1,6 +1,5 @@
 import json
 import os
-import uuid
 from typing import Any, Dict, Iterable, List, Optional
 
 
@@ -45,15 +44,14 @@ TITLE_MOOD_HINTS = {
 
 
 def spotify_is_configured() -> bool:
-    return bool(os.getenv("SPOTIPY_CLIENT_ID")) and bool(os.getenv("SPOTIPY_CLIENT_SECRET"))
+    return bool(os.getenv("SPOTIPY_CLIENT_ID"))
 
 
 def get_spotify_auth(cache_handler=None):
-    from spotipy.oauth2 import SpotifyOAuth
+    from spotipy.oauth2 import SpotifyPKCE
 
     kwargs = {
         "client_id": os.getenv("SPOTIPY_CLIENT_ID"),
-        "client_secret": os.getenv("SPOTIPY_CLIENT_SECRET"),
         "redirect_uri": os.getenv("SPOTIPY_REDIRECT_URI", DEFAULT_REDIRECT_URI),
         "scope": SPOTIFY_SCOPES,
         "open_browser": False,
@@ -63,7 +61,7 @@ def get_spotify_auth(cache_handler=None):
     else:
         kwargs["cache_path"] = ".spotify_cache"
 
-    return SpotifyOAuth(**kwargs)
+    return SpotifyPKCE(**kwargs)
 
 
 def get_spotify_auth_url(cache_handler=None) -> str:
@@ -76,15 +74,16 @@ def get_spotify_client(
     cache_handler=None
 ):
     if not spotify_is_configured():
-        raise RuntimeError("Spotify credentials are not configured.")
+        raise RuntimeError("Spotify is not configured on the server.")
 
     import spotipy
 
     auth = get_spotify_auth(cache_handler=cache_handler)
-        
-    token_info = auth.get_cached_token()
+
+    token_info = auth.validate_token(auth.cache_handler.get_cached_token())
     if not token_info and auth_code:
-        token_info = auth.get_access_token(auth_code)
+        auth.get_access_token(auth_code)
+        token_info = auth.validate_token(auth.cache_handler.get_cached_token())
     if not token_info:
         raise RuntimeError("Spotify login is required before importing tracks.")
     return spotipy.Spotify(auth=token_info["access_token"])
@@ -96,9 +95,7 @@ def import_spotify_tracks(
     auth_code: Optional[str] = None,
     cache_handler=None,
 ) -> List[Dict[str, Any]]:
-    # Note: tests monkeypatch `get_spotify_client` with a signature that
-    # may not accept `cache_handler`, so call with only the auth_code.
-    client = get_spotify_client(auth_code=auth_code)
+    client = get_spotify_client(auth_code=auth_code, cache_handler=cache_handler)
     imported: List[Dict[str, Any]] = []
     seen_ids = set()
 
