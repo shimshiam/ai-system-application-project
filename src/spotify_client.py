@@ -42,8 +42,10 @@ GENRE_MOOD_HINTS = {
     # R&B / Soul family
     "r&b": ("r&b", "romantic", 0.55, 0.46),
     "rnb": ("r&b", "romantic", 0.55, 0.46),
+    "alternative r&b": ("r&b", "moody", 0.50, 0.40),
     "soul": ("blues", "soulful", 0.50, 0.72),
     "neo soul": ("r&b", "soulful", 0.48, 0.60),
+    "vapor soul": ("r&b", "soulful", 0.45, 0.55),
     "funk": ("funk", "energetic", 0.75, 0.35),
     "gospel": ("gospel", "uplifting", 0.60, 0.65),
     # Rock family
@@ -415,10 +417,21 @@ def _merge_classifications(
 
 
 def _genre_defaults(artist_genres: List[str]) -> tuple[str, str, float, float]:
+    # Pass 1: check each Spotify genre tag individually (more precise)
+    for genre_tag in artist_genres:
+        tag = genre_tag.strip().lower()
+        if tag in GENRE_MOOD_HINTS:
+            return GENRE_MOOD_HINTS[tag]
+    # Pass 2: substring scan across all tags joined
     lowered = " ".join(artist_genres).lower()
-    for key, defaults in GENRE_MOOD_HINTS.items():
+    # Sort keys longest-first so "dream pop" matches before "pop"
+    for key in sorted(GENRE_MOOD_HINTS, key=len, reverse=True):
         if key in lowered:
-            return defaults
+            return GENRE_MOOD_HINTS[key]
+    # Pass 3: use the first raw Spotify genre name instead of always "pop"
+    if artist_genres:
+        raw = artist_genres[0].strip().lower().replace(" ", "-")
+        return (raw, "focused", 0.55, 0.45)
     return ("pop", "focused", 0.55, 0.45)
 
 
