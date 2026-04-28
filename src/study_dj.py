@@ -362,6 +362,14 @@ def _pacing_note(rank: int, total: int, song: Dict[str, Any], rule: Dict[str, An
         return f"Start with {song['mood']} energy at {song['energy']:.2f}."
     if rank == total:
         return f"Close with a {song['genre']} track to reset before the next block."
+    # Provide contextual pacing for mid-playlist positions
+    position = rank / total
+    if position <= 0.25:
+        return f"Early warm-up — ease in with energy {song['energy']:.2f}."
+    if 0.45 <= position <= 0.55:
+        return f"Mid-session anchor — {song['mood']} energy at {song['energy']:.2f} to sustain focus."
+    if position >= 0.75:
+        return f"Final stretch — begin winding down with energy {song['energy']:.2f}."
     return f"Keep momentum steady with energy {song['energy']:.2f}."
 
 

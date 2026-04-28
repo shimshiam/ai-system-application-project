@@ -1,5 +1,9 @@
 import os
+from pathlib import Path
 from html import escape
+
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / ".env")
 
 import streamlit as st
 
@@ -323,8 +327,8 @@ def render_styles():
         .module-footer {
             position: relative;
             z-index: 1;
-            margin-top: 0.85rem;
-            padding-top: 0.7rem;
+            margin-top: -0.15rem;
+            padding-top: 0.3rem;
             border-top: 1px solid rgba(173,143,87,0.18);
             display: flex;
             justify-content: space-between;
@@ -1102,6 +1106,107 @@ def render_styles():
             border-radius: 12px !important;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 18px rgba(45,57,69,0.08) !important;
         }
+        /* --- ACCENT COLOR OVERRIDES (replaces default Streamlit orange) --- */
+        :root {
+            --accent: #3ba5b6;
+            --accent-glow: rgba(59,165,182,0.35);
+        }
+
+        /* Primary / secondary buttons */
+        [data-testid="baseButton-secondary"],
+        [data-testid="baseButton-primary"] {
+            background: #888 !important;
+            background-image: linear-gradient(180deg, #d0d5da 0%, #8e959c 48%, #6a737b 100%) !important;
+            border: 2px outset #b8bec4 !important;
+            border-radius: 3px !important;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.55) !important;
+            padding: 0.36rem 0.75rem !important;
+        }
+
+        [data-testid="baseButton-secondary"] *,
+        [data-testid="baseButton-primary"] * {
+            color: #0a0e13 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
+            font-weight: bold !important;
+            text-transform: none !important;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5) !important;
+        }
+
+        [data-testid="baseButton-secondary"]:hover,
+        [data-testid="baseButton-primary"]:hover {
+            background-image: linear-gradient(180deg, #dce1e5 0%, #9da5ad 48%, #78828b 100%) !important;
+        }
+
+        [data-testid="baseButton-secondary"]:active,
+        [data-testid="baseButton-primary"]:active {
+            border: 2px inset #b8bec4 !important;
+            box-shadow: inset 1px 1px 3px rgba(0,0,0,0.55) !important;
+            background-image: linear-gradient(180deg, #6a737b 0%, #8e959c 100%) !important;
+        }
+
+        /* Slider accent track */
+        [data-baseweb="slider"] > div > div > div:nth-child(2) {
+            background: linear-gradient(90deg, #9fe0ff 0%, var(--accent) 48%, #74d97a 100%) !important;
+        }
+
+        /* Slider thumb */
+        [role="slider"] {
+            background: linear-gradient(180deg, #fbfdff 0%, #c7d0d8 40%, #7b8792 100%) !important;
+            border: 1px solid #55616c !important;
+            border-color: #55616c !important;
+        }
+
+        /* Slider value text */
+        [data-baseweb="slider"] [data-testid="stThumbValue"] {
+            color: var(--accent) !important;
+        }
+
+        /* Radio button indicators */
+        [data-testid="stRadio"] input[type="radio"]:checked + div {
+            border-color: var(--accent) !important;
+        }
+
+        [data-testid="stRadio"] input[type="radio"]:checked + div::after {
+            background-color: var(--accent) !important;
+        }
+
+        /* Checkbox checked state */
+        [data-testid="stCheckbox"] [data-baseweb="checkbox"] input:checked + div {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+        }
+
+        /* Toggle switch */
+        [data-testid="stToggle"] [data-baseweb="toggle"] > div {
+            background-color: var(--accent) !important;
+        }
+
+        /* Link buttons (like Connect Spotify) */
+        a[data-testid="baseLinkButton-secondary"] {
+            background-image: linear-gradient(180deg, #d0d5da 0%, #8e959c 48%, #6a737b 100%) !important;
+            border: 2px outset #b8bec4 !important;
+            border-radius: 3px !important;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.55) !important;
+        }
+
+        a[data-testid="baseLinkButton-secondary"] * {
+            color: #0a0e13 !important;
+            font-family: Tahoma, "MS Sans Serif", Verdana, sans-serif !important;
+            font-weight: bold !important;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.5) !important;
+        }
+
+        /* Select-slider option labels (remove orange highlight) */
+        [data-baseweb="slider"] [role="slider"]::after {
+            background-color: var(--accent) !important;
+        }
+
+        /* Focus rings */
+        *:focus-visible {
+            outline-color: var(--accent) !important;
+        }
+        /* --- ACCENT OVERRIDES END --- */
+
         /* --- UI FIXES END --- */
 
         @media (max-width: 900px) {
@@ -1240,22 +1345,78 @@ def main():
                 else:
                     cache_handler = StreamlitSessionCacheHandler() if StreamlitSessionCacheHandler else None
                     auth_code = get_query_code()
+
+                    # --- PKCE verifier persistence ---
+                    # SpotifyPKCE generates a random code_verifier on every
+                    # __init__.  Streamlit reruns (and hot-reloads) create new
+                    # instances, losing the verifier that was used to build the
+                    # auth URL.  We persist it to disk so it survives everything.
+                    import json as _json
+                    _PKCE_FILE = Path(__file__).parent / ".pkce_verifier.json"
+
+                    from src.spotify_client import get_spotify_auth
+                    auth_mgr = get_spotify_auth(cache_handler=cache_handler)
+
+                    # Restore a previously-saved verifier, or save the new one
+                    if _PKCE_FILE.exists():
+                        try:
+                            stored = _json.loads(_PKCE_FILE.read_text())
+                            auth_mgr.code_verifier = stored["verifier"]
+                            auth_mgr.code_challenge = stored["challenge"]
+                        except Exception:
+                            pass  # will regenerate below
+
+                    def _save_pkce():
+                        _PKCE_FILE.write_text(_json.dumps({
+                            "verifier": auth_mgr.code_verifier,
+                            "challenge": auth_mgr.code_challenge,
+                        }))
+
                     if not st.session_state.get("spotify_songs"):
                         st.markdown('''<style>a[href^="https://accounts.spotify.com"] { background-color: #1DB954 !important; color: white !important; border: none !important; font-weight: bold !important; }</style>''', unsafe_allow_html=True)
                         if "spotify_auth_url" not in st.session_state:
-                            url = get_spotify_auth_url(cache_handler=cache_handler)
-                            st.session_state["spotify_auth_url"] = url
+                            st.session_state["spotify_auth_url"] = auth_mgr.get_authorize_url()
+                            _save_pkce()  # save verifier that matches this URL
                         st.link_button("Connect Spotify", st.session_state["spotify_auth_url"])
                     if auth_code:
                         st.caption("Spotify authorization code detected.")
                     if st.button("Import Spotify tracks", use_container_width=True):
                         try:
-                            st.session_state["spotify_songs"] = load_spotify_songs(
-                                auth_code, 
-                                cache_handler
+                            import spotipy
+                            auth_mgr.get_access_token(auth_code)
+                            token_info = auth_mgr.validate_token(auth_mgr.cache_handler.get_cached_token())
+                            if not token_info:
+                                raise RuntimeError("Spotify login failed — please reconnect.")
+                            sp = spotipy.Spotify(auth=token_info["access_token"])
+
+                            from src.spotify_client import (
+                                normalize_spotify_track,
+                                _fetch_artist_genres,
+                                classify_spotify_tracks,
                             )
+                            imported = []
+                            seen_ids = set()
+                            top_items = sp.current_user_top_tracks(limit=25, time_range="medium_term").get("items", [])
+                            recent_items = sp.current_user_recently_played(limit=25).get("items", [])
+                            artist_genres = _fetch_artist_genres(sp, [*top_items, *recent_items])
+
+                            for item in top_items:
+                                sid = item.get("id")
+                                if sid and sid not in seen_ids:
+                                    seen_ids.add(sid)
+                                    imported.append(normalize_spotify_track(item, "top_track", artist_genres, len(imported) + 1))
+                            for item in recent_items:
+                                track = item.get("track", item)
+                                sid = track.get("id")
+                                if sid and sid not in seen_ids:
+                                    seen_ids.add(sid)
+                                    imported.append(normalize_spotify_track(item, "recently_played", artist_genres, len(imported) + 1))
+
+                            st.session_state["spotify_songs"] = classify_spotify_tracks(imported)
                             st.session_state["spotify_error"] = ""
                             st.query_params.clear()
+                            # Clean up verifier file after successful exchange
+                            _PKCE_FILE.unlink(missing_ok=True)
                         except Exception as exc:
                             st.session_state["spotify_songs"] = []
                             st.session_state["spotify_error"] = str(exc)
@@ -1392,11 +1553,16 @@ def main():
         synthesis_params={"tuning_shift": tuning_shift} if 'tuning_shift' in locals() else None,
     )
 
+    # Scale playlist size to fill the session using actual catalog durations
+    total_seconds = sum(s.get("song_length_seconds", 210) for s in active_songs)
+    avg_song_minutes = (total_seconds / len(active_songs) / 60) if active_songs else 3.5
+    k = max(3, min(len(active_songs), round(session_minutes / avg_song_minutes)))
+
     result = build_study_playlist(
         request,
         active_songs,
         study_rules,
-        k=5,
+        k=k,
         use_llm=use_llm,
         model=os.getenv("AI_MODEL"),
     )
