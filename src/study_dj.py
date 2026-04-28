@@ -139,12 +139,18 @@ def retrieve_candidate_songs(
             continue
         filtered_songs.append(song)
         
-    if not filtered_songs and songs:
-        # Fallback 1: Ignore lyrics filter
-        filtered_songs = [s for s in songs if request.allows_explicit or s.get("explicit", 0) != 1]
-        if not filtered_songs:
+    if len(filtered_songs) < k and songs:
+        # Not enough songs survived the lyrics filter — pad with songs that
+        # pass the explicit filter (but may have lyrics) to fill the playlist.
+        existing_ids = {id(s) for s in filtered_songs}
+        extras = [s for s in songs
+                  if id(s) not in existing_ids
+                  and (request.allows_explicit or s.get("explicit", 0) != 1)]
+        filtered_songs.extend(extras)
+        if len(filtered_songs) < k:
             # Fallback 2: Ignore all filters to prevent empty retrieval
-            filtered_songs = songs
+            remaining = [s for s in songs if id(s) not in {id(s2) for s2 in filtered_songs}]
+            filtered_songs.extend(remaining)
 
     user_prefs = {
         "genre": request.preferred_genre or primary_rule.get("recommended_genre"),

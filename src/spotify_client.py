@@ -122,6 +122,56 @@ TITLE_MOOD_HINTS = {
     "study": "focused",
 }
 
+TITLE_GENRE_HINTS = {
+    "acoustic": "folk",
+    "ambient": "ambient",
+    "anime": "pop",
+    "bachata": "latin",
+    "beat": "hip-hop",
+    "blues": "blues",
+    "bossa": "jazz",
+    "chill": "lofi",
+    "classical": "classical",
+    "club": "edm",
+    "coding": "lofi",
+    "country": "country",
+    "dance": "edm",
+    "drill": "hip-hop",
+    "edm": "edm",
+    "electro": "electronic",
+    "folk": "folk",
+    "funk": "funk",
+    "gospel": "gospel",
+    "grunge": "rock",
+    "guitar": "rock",
+    "hip hop": "hip-hop",
+    "hip-hop": "hip-hop",
+    "house": "edm",
+    "indie": "indie pop",
+    "jazz": "jazz",
+    "latin": "latin",
+    "lofi": "lofi",
+    "lo-fi": "lofi",
+    "metal": "metal",
+    "orchestra": "classical",
+    "piano": "classical",
+    "punk": "punk",
+    "r&b": "r&b",
+    "rap": "hip-hop",
+    "reggae": "reggae",
+    "reggaeton": "latin",
+    "rock": "rock",
+    "salsa": "latin",
+    "soul": "blues",
+    "soundtrack": "classical",
+    "study": "lofi",
+    "symphony": "classical",
+    "synth": "electronic",
+    "techno": "edm",
+    "trap": "hip-hop",
+    "trance": "edm",
+}
+
 
 def spotify_is_configured() -> bool:
     return bool(os.getenv("SPOTIPY_CLIENT_ID"))
@@ -211,6 +261,7 @@ def normalize_spotify_track(
     primary_artist = artists[0] if artists else {}
     artist_name = primary_artist.get("name", "Unknown Artist")
     genres = artist_genres.get(primary_artist.get("id"), [])
+    album_name = raw_track.get("album", {}).get("name", "")
 
     popularity = int(raw_track.get("popularity") or 50)
     duration_seconds = int((raw_track.get("duration_ms") or 210000) / 1000)
@@ -220,6 +271,7 @@ def normalize_spotify_track(
         popularity=popularity,
         explicit=1 if raw_track.get("explicit") else 0,
         duration_seconds=duration_seconds,
+        album_name=album_name,
     )
 
     return {
@@ -244,6 +296,7 @@ def normalize_spotify_track(
         "spotify_url": raw_track.get("external_urls", {}).get("spotify", ""),
         "source": source,
         "artist_genres": genres,
+        "album_name": album_name,
     }
 
 
@@ -287,8 +340,20 @@ def _infer_features(
     popularity: int,
     explicit: int,
     duration_seconds: int,
+    album_name: str = "",
 ) -> Dict[str, Any]:
     genre, mood, base_energy, acousticness = _genre_defaults(artist_genres)
+
+    # If artist_genres produced no useful match (fell back to "pop" with no
+    # actual genre data), try to infer genre from the title and album name.
+    if not artist_genres or genre == "pop":
+        title_genre = _title_genre(title, album_name)
+        if title_genre:
+            # Re-derive defaults from the title-inferred genre
+            g, m, e, a = _genre_defaults([title_genre])
+            if g != "pop" or title_genre.lower() == "pop":
+                genre, mood, base_energy, acousticness = g, m, e, a
+
     title_mood = _title_mood(title)
     if title_mood:
         mood = title_mood
@@ -319,6 +384,7 @@ def _fallback_classify(track: Dict[str, Any]) -> Dict[str, Any]:
         popularity=int(track.get("popularity", 50)),
         explicit=int(track.get("explicit", 0)),
         duration_seconds=int(track.get("song_length_seconds", 210)),
+        album_name=track.get("album_name", ""),
     )
     updated = {**track, **inferred}
     return updated
@@ -443,6 +509,16 @@ def _title_mood(title: str) -> Optional[str]:
     return None
 
 
+def _title_genre(title: str, album_name: str = "") -> Optional[str]:
+    """Infer genre from the track title or album name when artist genres are unavailable."""
+    combined = f"{title} {album_name}".lower()
+    # Sort longest-first to prefer specific matches ("hip-hop" before "hop")
+    for keyword in sorted(TITLE_GENRE_HINTS, key=len, reverse=True):
+        if keyword in combined:
+            return TITLE_GENRE_HINTS[keyword]
+    return None
+
+
 def _mood_tags(mood: str, artist_genres: List[str]) -> List[str]:
     tags = [mood]
     for genre in artist_genres[:2]:
@@ -461,7 +537,10 @@ def _release_year(track: Dict[str, Any]) -> int:
 
 
 def _language_from_features(features: Dict[str, Any]) -> str:
-    instrumental_friendly = {"ambient", "classical", "jazz", "lofi"}
+    instrumental_friendly = {
+        "ambient", "classical", "jazz", "lofi",
+        "edm", "electronic", "funk", "world", "afrobeat",
+    }
     return "Instrumental" if features.get("genre") in instrumental_friendly else "English"
 
 
