@@ -1,0 +1,5 @@
+.cache
+.spotify_cache
+.streamlit/
+__pycache__/
+*.pyc
