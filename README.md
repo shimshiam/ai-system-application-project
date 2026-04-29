@@ -22,7 +22,7 @@ The Vibe Synthesizer is built on a multi-layered Retrieval-Augmented Generation 
 
 For a detailed visual map of the data flow and component relationships, see the [System Architecture Diagram](assets/system_diagram.md).
 
-![System Structure Diagram](assets/system_structure.png)
+<img src="assets/system_structure.png" alt="System Structure Diagram" width="800">
 
 
 
