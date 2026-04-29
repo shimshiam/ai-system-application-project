@@ -56,7 +56,7 @@ flowchart TB
     subgraph GENERATION["🤖 Playlist Generation <i>(study_dj.py)</i>"]
         direction TB
         GEN{"generate_playlist_plan()"}
-        LLM_GEN["OpenAI Generator<br/><i>Structured JSON output</i><br/><i>Grounded on retrieved context</i>"]
+        LLM_GEN["AI Generator<br/><i>OpenAI / Mistral / Groq / Gemini</i><br/><i>Structured JSON output</i><br/><i>Grounded on retrieved context</i>"]
         FALLBACK_GEN["Deterministic Fallback<br/><i>generate_fallback_playlist_plan()</i><br/><i>Rank-ordered with pacing notes</i>"]
         VALIDATE["Validate & Ground<br/><i>_ensure_plan_uses_retrieved_songs()</i><br/>Reject hallucinated tracks"]
         GEN -->|"API key available"| LLM_GEN --> VALIDATE
@@ -131,7 +131,8 @@ flowchart TB
 | **Spotify Ingestion** | `src/spotify_client.py` | Authenticates via PKCE, imports tracks, classifies genre/mood/energy |
 | **RAG Retriever** | `src/study_dj.py` | Retrieves matching study rules + candidate songs using scored ranking |
 | **Recommender Engine** | `src/recommender.py` | 5 pluggable scorer strategies that rank songs against user preferences |
-| **Playlist Generator** | `src/study_dj.py` | LLM-grounded or deterministic fallback plan with hallucination guard |
+| **Playlist Generator** | `src/study_dj.py` | AI-grounded (OpenAI/Mistral) or deterministic fallback plan with hallucination guard |
+| **Reliability Suite** | `scripts/reliability_test.py` | Automated fidelity and grounding checks across predefined scenarios |
 | **Test Suite** | `tests/test_*.py` | 18 automated tests covering scoring, Spotify integration, and RAG grounding |
 | **Human Oversight** | Dashboard UI | All retrieval context is visible; users tune params and toggle AI on/off |
 
@@ -158,7 +159,7 @@ User Preferences (UI)
                  ▼
 ┌─────────────────────────────────────────────┐
 │         GENERATION                           │
-│  • OpenAI: structured JSON from context      │
+│  • AI (OpenAI/Mistral): structured JSON      │
 │  • Fallback: deterministic rank + pacing     │
 │  • Grounding: reject hallucinated tracks     │
 └────────────────┬────────────────────────────┘
