@@ -24,6 +24,8 @@ For a detailed visual map of the data flow and component relationships, see the 
 
 ![System Structure Diagram](assets/system_structure.png)
 
+---
+
 ### Core Pipeline
 1. **Ingestion**: Music data is pulled from a demo catalog or a live **Spotify account** (using secure PKCE authorization). Spotify tracks are automatically classified for genre and energy using an AI-heuristic hybrid.
 2. **Retrieval (RAG)**: The system performs a dual-retrieval step, pulling task-specific guidance from a **knowledge base of study rules** and ranking candidate songs using one of five pluggable scoring strategies.
