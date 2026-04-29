@@ -1,17 +1,19 @@
-# 🎚️ Vibe Synthesizer (RAG Study DJ)
+![Vibe Synthesizer Banner](assets/banner.png)
+
+# Vibe Synthesizer (RAG Study DJ)
 
 **Vibe Synthesizer** is an advanced, RAG-powered music recommendation system designed to curate perfectly paced study playlists. By bridging the gap between your personal Spotify library and task-specific cognitive focus strategies, it ensures your audio environment matches the intensity of your work.
 
 ---
 
-## 🕒 Original Project: Music Recommender Simulation (Module 3)
+## Original Project: Music Recommender Simulation (Module 3)
 This project originated as **Music Recommender Simulation**, a simple command-line interface tool. 
 *   **Original Goals**: To demonstrate basic content-based filtering by matching user-inputted genre and mood preferences against a static catalog of 20 songs.
 *   **Original Capabilities**: Basic scoring logic based on energy closeness and string-match genre detection, producing a ranked list of top 5 recommendations in the terminal.
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation (RAG) system:
 
@@ -22,9 +24,16 @@ The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation
 3.  **Synthesis Layer (RAG)**: An LLM (OpenAI) synthesizes the retrieved tracks and study rules into a cohesive **Playlist Plan**, providing a "Pacing Note" for every track to explain its role in the study arc.
 4.  **Presentation Layer (Mix Console)**: A custom-themed Streamlit dashboard utilizing a **2000s skeuomorphic hardware aesthetic** for a tactile, immersive user experience.
 
+### Hardware Interface Modules
+
+![Module 1: Source Input](assets/module_source.png)
+![Module 2: Context Modulators](assets/module_context.png)
+![Module 3: Vibe Synthesis Engine](assets/module_synthesis.png)
+![Module 4: Signal Filters & Outboard](assets/module_filters.png)
+
 ---
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 - Python 3.8+
@@ -57,17 +66,19 @@ streamlit run streamlit_app.py
 
 ---
 
-## 🎮 Sample Interactions
+## Sample Interactions
 
 | Input (Task/Goal) | Preferred Vibe | Resulting AI Output (Strategy) |
 | :--- | :--- | :--- |
-| **Coding / Deep Work** | Lo-Fi, Chill, 0.4 Energy | "Warm-up with 'Midnight City' (0.35 energy). Build to 'Data Stream' (0.6 energy) during core logic hours. Strategy: Use steady rhythms to mask ambient noise." |
-| **Reading / Calm** | Jazz, Relaxed, 0.2 Energy | "A 30-minute block of low-intensity acoustic jazz. Strategy: Maintain a consistent background hum without linguistic distraction to maximize comprehension." |
-| **Workout / Power** | Metal, Aggressive, 0.9 Energy | "High-intensity metal and electronic tracks. Strategy: Maximum BPM and aggressive mood weighting to drive physical performance during interval peaks." |
+| **Coding / Deep Focus** | Ambient, Focused, Balanced Energy | "Warm-up with 'Spacewalk Thoughts' (0.28 energy). Build to 'Night Drive Loop' (0.75 energy) during core logic hours. Strategy: Use steady rhythms to reduce context switching." |
+| **Reading / Deep Focus** | Classical, Peaceful, Chill Energy | "A 30-minute block of peaceful classical music. Strategy: Maintain a spacious soundscape so language processing remains available for text." |
+| **Writing / Creative Flow** | Jazz, Relaxed, Balanced Energy | "Mid-energy jazz tracks. Strategy: Support creative momentum with warm, organic sounds that don't overpower language-heavy work." |
+
+![Coding Deep Focus Sample Output](assets/coding_screenshot.png)
 
 ---
 
-## 🛠️ Design Decisions & Trade-offs
+## Design Decisions & Trade-offs
 
 *   **Skeuomorphic Hardware UI**: I chose a "Mix Console" aesthetic to make the "Synthesis" of vibes feel physical and tactile, moving away from flat modern design to create a more focused, nostalgic environment.
 *   **Spotify PKCE Authorization**: I implemented the PKCE flow specifically to improve security. This allows the application to run in client-side contexts without requiring a `Client Secret`, making it safer for users to connect their accounts.
@@ -75,7 +86,7 @@ streamlit run streamlit_app.py
 
 ---
 
-## 🧪 Testing Summary
+## Testing Summary
 
 *   **What Worked**: The hybrid scoring system successfully distinguishes between "Background" tasks (low energy, acoustic) and "Active" tasks (high energy, electronic).
 *   **The Energy Drift Problem**: During testing, I found that high-energy tracks often dominated rankings. I solved this by implementing the **Resonance Scorer**, which penalizes tracks that deviate too far from the median library energy.
@@ -83,6 +94,6 @@ streamlit run streamlit_app.py
 
 ---
 
-## 🧠 Reflection: AI and Problem Solving
+## Reflection: AI and Problem Solving
 
 Building the **Vibe Synthesizer** taught me that the "Vibe" of an AI application is as much about the **deterministic constraints** as it is about the **generative model**. By using RAG, I ensure the AI acts as a "curator" rather than a "creator," which is essential for tools meant to aid human productivity. I learned that the most difficult part of AI development isn't the prompt engineering—it's the **data plumbing** and ensuring the UI provides enough feedback for the user to trust the algorithm's decisions.
