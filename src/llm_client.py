@@ -12,21 +12,29 @@ from typing import Any, Dict, List, Optional
 # Provider base URLs
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+MISTRAL_BASE_URL = "https://api.mistral.ai/v1"
 
 # Default models per provider
 DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 DEFAULT_OPENAI_MODEL = "gpt-4o"
+DEFAULT_MISTRAL_MODEL = "mistral-large-latest"
 
 
 def get_llm_client():
-    """Return (client, model_name) using Gemini, Groq, or OpenAI."""
+    """Return (client, model_name) using Gemini, Groq, Mistral, or OpenAI."""
     from openai import OpenAI
 
     gemini_key = os.getenv("GEMINI_API_KEY")
+    mistral_key = os.getenv("MISTRAL_API_KEY")
     groq_key = os.getenv("GROQ_API_KEY")
     openai_key = os.getenv("OPENAI_API_KEY")
     model = os.getenv("AI_MODEL")
+
+    if mistral_key:
+        client = OpenAI(api_key=mistral_key, base_url=MISTRAL_BASE_URL)
+        model = model or DEFAULT_MISTRAL_MODEL
+        return client, model
 
     if gemini_key:
         client = OpenAI(api_key=gemini_key, base_url=GEMINI_BASE_URL)
@@ -50,6 +58,7 @@ def llm_is_available() -> bool:
     """Check if any LLM API key is configured."""
     return bool(
         os.getenv("GEMINI_API_KEY")
+        or os.getenv("MISTRAL_API_KEY")
         or os.getenv("GROQ_API_KEY")
         or os.getenv("OPENAI_API_KEY")
     )

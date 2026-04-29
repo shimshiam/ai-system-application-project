@@ -396,8 +396,12 @@ def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     from src.llm_client import chat_json
     import os
 
-    # Use a faster, higher-limit model for classification if on Groq
-    model = "llama-3.1-8b-instant" if os.getenv("GROQ_API_KEY") else None
+    # Use a faster, higher-limit model for classification if on Groq or Mistral
+    model = None
+    if os.getenv("GROQ_API_KEY"):
+        model = "llama-3.1-8b-instant"
+    elif os.getenv("MISTRAL_API_KEY"):
+        model = "mistral-small-latest"
 
     results = []
     batch_size = 30
