@@ -19,6 +19,8 @@ The Vibe Synthesizer is built on a multi-layered Retrieval-Augmented Generation 
 
 For a detailed visual map of the data flow and component relationships, see the [System Architecture Diagram](assets/system_diagram.md).
 
+![System Structure Diagram](assets/system_structure.png)
+
 ### Core Pipeline
 1. **Ingestion**: Music data is pulled from a demo catalog or a live **Spotify account** (using secure PKCE authorization). Spotify tracks are automatically classified for genre and energy using an AI-heuristic hybrid.
 2. **Retrieval (RAG)**: The system performs a dual-retrieval step, pulling task-specific guidance from a **knowledge base of study rules** and ranking candidate songs using one of five pluggable scoring strategies.
@@ -98,6 +100,15 @@ streamlit run streamlit_app.py
     *   **Grounding**: Confirming that the final playlist plan only includes tracks present in the retrieved context.
 *   **Human-in-the-Loop**: The skeuomorphic dashboard provides full transparency. Users can see the "Retrieved Context" (raw scores and reasons) and the "AI Strategy" side-by-side to verify the synthesizer's decisions.
 *   **Defensive Design**: If the AI provider (OpenAI/Mistral) is unavailable or produces malformed JSON, the system automatically triggers a **Deterministic Fallback** to ensure the user always receives a valid, well-paced playlist.
+
+### Reliability Report
+You can run a comprehensive fidelity check on the recommendation engine by executing:
+```bash
+python3 scripts/reliability_test.py
+```
+This script validates the "Hallucination Guard" and measures the average vibe-match score across multiple predefined study scenarios.
+
+---
 
 ---
 
