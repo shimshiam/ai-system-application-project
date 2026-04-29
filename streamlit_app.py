@@ -1559,17 +1559,25 @@ def main():
     avg_song_minutes = (total_seconds / len(active_songs) / 60) if active_songs else 3.5
     k = max(3, min(len(active_songs), round(session_minutes / avg_song_minutes)))
 
-    result = build_study_playlist(
-        request,
-        active_songs,
-        study_rules,
-        k=k,
-        use_llm=use_llm,
-        model=os.getenv("AI_MODEL"),
-    )
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("Synthesize Playlist", type="primary", use_container_width=True):
+        with st.spinner("Synthesizing vibe..."):
+            st.session_state["playlist_result"] = build_study_playlist(
+                request,
+                active_songs,
+                study_rules,
+                k=k,
+                use_llm=use_llm,
+                model=os.getenv("AI_MODEL"),
+            )
+
+    if "playlist_result" not in st.session_state:
+        st.info("Configure your modules above and click **Synthesize Playlist** to generate your mix.")
+        return
+
+    result = st.session_state["playlist_result"]
     retrieval = result["retrieval"]
     playlist = result["playlist"]
-
     metric_cols = st.columns(3)
     metric_cols[0].metric("Retrieved Songs", len(retrieval["retrieved_songs"]))
     metric_cols[1].metric("Catalog Source", source_label)

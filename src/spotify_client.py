@@ -394,20 +394,14 @@ def _fallback_classify(track: Dict[str, Any]) -> Dict[str, Any]:
 
 def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     from src.llm_client import chat_json
+    import os
 
-    payload = [
-        {
-            "spotify_id": track.get("spotify_id"),
-            "title": track.get("title"),
-            "artist": track.get("artist"),
-            "artist_genres": track.get("artist_genres", []),
-            "popularity": track.get("popularity"),
-            "explicit": track.get("explicit"),
-            "duration_seconds": track.get("song_length_seconds"),
-        }
-        for track in tracks
-    ]
+    # Use a faster, higher-limit model for classification if on Groq
+    model = "llama-3.1-8b-instant" if os.getenv("GROQ_API_KEY") else None
 
+    results = []
+    batch_size = 30
+    
     system_prompt = (
         "Classify each Spotify track for a study playlist recommender.\n\n"
         "For each track, return:\n"
@@ -429,8 +423,28 @@ def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         "Return ONLY valid JSON, no other text."
     )
 
-    result = chat_json(system_prompt, json.dumps(payload, indent=2))
-    return result["tracks"]
+    for i in range(0, len(tracks), batch_size):
+        batch = tracks[i:i + batch_size]
+        payload = [
+            {
+                "spotify_id": track.get("spotify_id"),
+                "title": track.get("title"),
+                "artist": track.get("artist"),
+                "artist_genres": track.get("artist_genres", []),
+                "popularity": track.get("popularity"),
+                "explicit": track.get("explicit"),
+                "duration_seconds": track.get("song_length_seconds"),
+            }
+            for track in batch
+        ]
+
+        try:
+            batch_result = chat_json(system_prompt, json.dumps(payload, indent=2), model=model)
+            results.extend(batch_result.get("tracks", []))
+        except Exception as e:
+            print(f"Warning: Classification batch {i} failed: {e}")
+
+    return results
 
 
 def _merge_classifications(
