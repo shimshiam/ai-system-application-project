@@ -1,6 +1,6 @@
 """Shared LLM client factory.
 
-Checks for GROQ_API_KEY first, then OPENAI_API_KEY.
+Checks for GEMINI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY (in that order).
 Returns an OpenAI-compatible client and the model name to use.
 """
 
@@ -9,19 +9,29 @@ import os
 from typing import Any, Dict, List, Optional
 
 
-# Groq base URL for OpenAI-compatible API
+# Provider base URLs
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+# Default models per provider
+DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 DEFAULT_OPENAI_MODEL = "gpt-4o"
 
 
 def get_llm_client():
-    """Return (client, model_name) using Groq or OpenAI, whichever key is available."""
+    """Return (client, model_name) using Gemini, Groq, or OpenAI."""
     from openai import OpenAI
 
+    gemini_key = os.getenv("GEMINI_API_KEY")
     groq_key = os.getenv("GROQ_API_KEY")
     openai_key = os.getenv("OPENAI_API_KEY")
     model = os.getenv("AI_MODEL")
+
+    if gemini_key:
+        client = OpenAI(api_key=gemini_key, base_url=GEMINI_BASE_URL)
+        model = model or DEFAULT_GEMINI_MODEL
+        return client, model
 
     if groq_key:
         client = OpenAI(api_key=groq_key, base_url=GROQ_BASE_URL)
@@ -33,12 +43,16 @@ def get_llm_client():
         model = model or DEFAULT_OPENAI_MODEL
         return client, model
 
-    raise RuntimeError("No LLM API key found. Set GROQ_API_KEY or OPENAI_API_KEY.")
+    raise RuntimeError("No LLM API key found. Set GEMINI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY.")
 
 
 def llm_is_available() -> bool:
     """Check if any LLM API key is configured."""
-    return bool(os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY"))
+    return bool(
+        os.getenv("GEMINI_API_KEY")
+        or os.getenv("GROQ_API_KEY")
+        or os.getenv("OPENAI_API_KEY")
+    )
 
 
 def chat_json(
@@ -48,8 +62,8 @@ def chat_json(
 ) -> Dict[str, Any]:
     """Send a chat completion request and return parsed JSON.
 
-    Uses json_object response format which is compatible with both
-    Groq and OpenAI providers.
+    Uses json_object response format which is compatible with
+    Gemini, Groq, and OpenAI providers.
     """
     client, default_model = get_llm_client()
     selected_model = model or default_model
