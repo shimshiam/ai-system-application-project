@@ -1,13 +1,17 @@
-# Reflection on Recommendation Profiles
+# Reflection: Building the Vibe Synthesizer
 
-- Party Mode vs Study Session
-  - Party Mode wants happy pop with high energy and electronic sound, so its top results are bright pop songs with strong energy. Study Session wants chill lofi and low energy acoustic sound, so its top results shift to mellow lofi tracks. This makes sense because the model is rewarding both the genre/mood match and the closeness of song energy to the target.
+### Limitations and Biases
+One big limitation is that the system is only as good as the metadata it gets from Spotify. If an artist's genre is tagged incorrectly or if a track has a weird energy rating, the engine might throw it into a playlist where it doesn't belong. There's also a bit of a bias in the study rules—they reflect my own idea of what "focus" sounds like. Someone who studies better with high-energy metal might find the system too restrictive.
 
-- Gym Grinder vs Conflicted Pop Fan
-  - Gym Grinder is clearly looking for metal/aggressive and very high energy, so the top results are hard-driving metal and electronic tracks. Conflicted Pop Fan wants pop and sad mood, but the output still includes Gym Hero because it is pop and also very close to the requested high energy. That shows the model is still letting energy push songs into the top results even when the mood is not a perfect match.
+### Misuse and Prevention
+The main way this could be misused is by someone trying to use it as a generic "playlist generator" to bypass the intended focus-based goal. Even if the LLM wants to get creative, the "Hallucination Guard" and the deterministic fallback ensure that the tracks actually match the study strategy. Also, using the PKCE flow means I'm not storing any user secrets, which keeps the integration secure.
 
-- Evening Wind-Down vs Road Trip
-  - Evening Wind-Down prefers blues, soulful, mid-low energy, and acoustic sound, so its recommendations move toward warm, relaxed songs. Road Trip prefers hip-hop, confident mood, high energy, and electronic production, so its top results are more upbeat and punchy. The difference is exactly what these two profiles are testing: one is about calm, acoustic relaxation and the other is about driving energy.
+### Testing Surprises
+During testing, I noticed that the high-energy tracks almost always won. It made the playlists feel too intense too fast. I had to build the "Resonance Scorer" to basically say, "if the vibe is supposed to be chill, don't just pick the loudest track".
 
-- No Good Match vs Impossible Energy
-  - No Good Match asks for a genre/mood combo that is not well represented, so the system picks songs that are close in mood or energy rather than exact. Impossible Energy asks for energy outside the normal range, so it ends up ranking songs mostly by available energy closeness and genre match, demonstrating that the model struggles when the target is extreme. This comparison shows the limitation of the scoring formula for rare or out-of-range preferences.
+### AI Collaboration
+Working with different AI models was a big part of the process. A mix of a massive speed boost and some occasional debugging.
+
+*   **The Good**: **Claude** was a lifesaver when it came to security. It was the one that pushed me to use the Spotify PKCE flow and fix a major key leak. **Codex** was also a huge help with the complex skeuomorphic CSS for the "Mix Console."
+*   **The Bad**: Earlier in the project, **Gemini Pro** helped me get the initial Spotify integration running, but it suggested hardcoding the Client Secret directly in the source code. It was super easy to set up, but it was a massive security hole that I had to go back and patch later. 
+*   **The Lesson**: The recent `KeyError` I hit in the pacing note logic was another reminder that even if an AI refactor looks clean and elegant, you still have to verify the data plumbing before you ship.
