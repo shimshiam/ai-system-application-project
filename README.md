@@ -4,6 +4,9 @@
 
 **Vibe Synthesizer** is an advanced, RAG-powered music recommendation system designed to curate perfectly paced study playlists. By bridging the gap between your personal Spotify library and task-specific cognitive focus strategies, it ensures your audio environment matches the intensity of your work.
 
+## Video Demonstration
+Watch the system in action: [Vibe Synthesizer Walkthrough](https://www.loom.com/share/4a1dc9bf68ee40c088fd34eba68d4116)
+
 ---
 
 ## Original Project: Music Recommender Simulation (Module 3)
