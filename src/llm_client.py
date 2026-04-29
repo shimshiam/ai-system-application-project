@@ -64,17 +64,30 @@ def chat_json(
 
     Uses json_object response format which is compatible with
     Gemini, Groq, and OpenAI providers.
+    Includes exponential backoff for handling RateLimitError.
     """
+    import time
+    import openai
+    
     client, default_model = get_llm_client()
     selected_model = model or default_model
 
-    response = client.chat.completions.create(
-        model=selected_model,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content},
-        ],
-        response_format={"type": "json_object"},
-        temperature=0.7,
-    )
-    return json.loads(response.choices[0].message.content)
+    max_retries = 3
+    base_delay = 2.0
+
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_content},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.7,
+            )
+            return json.loads(response.choices[0].message.content)
+        except openai.RateLimitError as exc:
+            if attempt == max_retries - 1:
+                raise exc
+            time.sleep(base_delay * (2 ** attempt))
