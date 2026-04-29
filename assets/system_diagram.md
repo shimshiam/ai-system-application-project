@@ -1,5 +1,7 @@
 # Study DJ — System Architecture Diagram
 
+## Component Breakdown
+
 ```mermaid
 flowchart TB
     subgraph INPUT["🎤 Input Sources"]
