@@ -404,10 +404,6 @@ def _source_context_used(retrieval: Dict[str, Any]) -> List[str]:
 
 
 def _track_identity_key(track: Dict[str, Any]) -> str:
-    spotify_id = (track.get("spotify_id") or "").strip()
-    if spotify_id:
-        return f"spotify:{spotify_id}"
-
     title = (track.get("title") or "").strip().casefold()
     artist = (track.get("artist") or "").strip().casefold()
     return f"catalog:{title}|{artist}"
