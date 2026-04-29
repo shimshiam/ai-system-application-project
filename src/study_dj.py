@@ -370,15 +370,18 @@ def _energy_for_study_rule(target_energy: float, rule: Dict[str, Any]) -> float:
 
 def _pacing_note(rank: int, total: int, song: Dict[str, Any], rule: Dict[str, Any]) -> str:
     if total <= 1 or rank == 1:
-        return f"Start with {song['mood']} energy at {song['energy']:.2f}."
+        mood_label = song.get("mood", "focused")
+        return f"Start with {mood_label} energy at {song['energy']:.2f}."
     if rank == total:
-        return f"Close with a {song['genre']} track to reset before the next block."
+        genre_label = song.get("genre", "ambient")
+        return f"Close with a {genre_label} track to reset before the next block."
     # Provide contextual pacing for mid-playlist positions
     position = rank / total
     if position <= 0.25:
         return f"Early warm-up — ease in with energy {song['energy']:.2f}."
     if 0.45 <= position <= 0.55:
-        return f"Mid-session anchor — {song['mood']} energy at {song['energy']:.2f} to sustain focus."
+        mood_label = song.get("mood", "focused")
+        return f"Mid-session anchor — {mood_label} energy at {song['energy']:.2f} to sustain focus."
     if position >= 0.75:
         return f"Final stretch — begin winding down with energy {song['energy']:.2f}."
     return f"Keep momentum steady with energy {song['energy']:.2f}."
@@ -395,6 +398,8 @@ def _source_context_used(retrieval: Dict[str, Any]) -> List[str]:
 
 
 def _track_identity_key(track: Dict[str, Any]) -> str:
+    if "spotify_id" in track and track["spotify_id"]:
+        return f"spotify:{track['spotify_id']}"
     title = (track.get("title") or "").strip().casefold()
     artist = (track.get("artist") or "").strip().casefold()
     return f"catalog:{title}|{artist}"

@@ -15,14 +15,15 @@ This project originated as **Music Recommender Simulation**, a simple command-li
 
 ## Architecture Overview
 
-The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation (RAG) system:
+The Vibe Synthesizer is built on a multi-layered Retrieval-Augmented Generation (RAG) architecture that ensures recommendations are grounded in both user library data and cognitive study principles. 
 
-1.  **Ingestion Layer**: Securely imports user data (Top Tracks, Recently Played) via the **Spotify PKCE Flow**.
-2.  **Retrieval Layer (The Vibe Engine)**: 
-    *   Queries `study_rules.csv` for task-specific guidance (e.g., "Coding" requires "Instrumental" and "High Energy").
-    *   Scores candidate tracks using weighted algorithms (**Balanced**, **Resonance**, **Energy-Focused**) to find the best match for the current focus block.
-3.  **Synthesis Layer (RAG)**: An LLM (OpenAI) synthesizes the retrieved tracks and study rules into a cohesive **Playlist Plan**, providing a "Pacing Note" for every track to explain its role in the study arc.
-4.  **Presentation Layer (Mix Console)**: A custom-themed Streamlit dashboard utilizing a **2000s skeuomorphic hardware aesthetic** for a tactile, immersive user experience.
+For a detailed visual map of the data flow and component relationships, see the [System Architecture Diagram](assets/system_diagram.md).
+
+### Core Pipeline
+1. **Ingestion**: Music data is pulled from a demo catalog or a live **Spotify account** (using secure PKCE authorization). Spotify tracks are automatically classified for genre and energy using an AI-heuristic hybrid.
+2. **Retrieval (RAG)**: The system performs a dual-retrieval step, pulling task-specific guidance from a **knowledge base of study rules** and ranking candidate songs using one of five pluggable scoring strategies.
+3. **Synthesis**: An LLM (OpenAI) or deterministic fallback generator synthesizes the retrieved rules and tracks into a cohesive **Playlist Plan**. A "hallucination guard" validates that the final output only contains tracks from the retrieved context.
+4. **Presentation**: The final plan, including study strategies and pacing notes, is delivered through a custom **skeuomorphic hardware interface** that provides full transparency into the retrieval process.
 
 ### Hardware Interface Modules
 
@@ -38,7 +39,7 @@ The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation
 ### Prerequisites
 - Python 3.8+
 - [Spotify Developer Account](https://developer.spotify.com/dashboard/) (to obtain a Client ID)
-- (Optional) [OpenAI API Key](https://platform.openai.com/) for AI-powered planning.
+- (Optional) [OpenAI](https://platform.openai.com/) or [MistralAI](https://console.mistral.ai/) API Key for AI-powered planning.
 
 ### Installation
 1. **Clone and Enter**:
@@ -56,7 +57,8 @@ The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation
    ```bash
    export SPOTIPY_CLIENT_ID="your_client_id"
    export SPOTIPY_REDIRECT_URI="http://127.0.0.1:8501"
-   export OPENAI_API_KEY="your_openai_key" # Optional
+   export OPENAI_API_KEY="your_openai_key"   # Optional
+   export MISTRAL_API_KEY="your_mistral_key" # Optional
    ```
 
 ### Running the App
@@ -88,9 +90,14 @@ streamlit run streamlit_app.py
 
 ## Testing Summary
 
-*   **What Worked**: The hybrid scoring system successfully distinguishes between "Background" tasks (low energy, acoustic) and "Active" tasks (high energy, electronic).
-*   **The Energy Drift Problem**: During testing, I found that high-energy tracks often dominated rankings. I solved this by implementing the **Resonance Scorer**, which penalizes tracks that deviate too far from the median library energy.
-*   **Automation**: Unit tests (`pytest`) ensure that Spotify data parsing remains robust even when metadata is missing or restricted.
+**Reliability Metric**: 18 out of 18 automated tests passed. The system maintains high fidelity by using a "Hallucination Guard" that rejects any AI-generated tracks not found in the initial retrieval context.
+
+*   **Automated Testing**: A suite of 18 `pytest` cases validates the core logic, including:
+    *   **Scoring Accuracy**: Ensuring the `Balanced` and `Resonance` scorers rank tracks correctly based on task energy.
+    *   **Data Integrity**: Verifying that Spotify ingestion handles missing metadata and strict filter rules (explicit/lyrics) without crashing.
+    *   **Grounding**: Confirming that the final playlist plan only includes tracks present in the retrieved context.
+*   **Human-in-the-Loop**: The skeuomorphic dashboard provides full transparency. Users can see the "Retrieved Context" (raw scores and reasons) and the "AI Strategy" side-by-side to verify the synthesizer's decisions.
+*   **Defensive Design**: If the AI provider (OpenAI/Mistral) is unavailable or produces malformed JSON, the system automatically triggers a **Deterministic Fallback** to ensure the user always receives a valid, well-paced playlist.
 
 ---
 
