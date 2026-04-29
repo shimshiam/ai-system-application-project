@@ -1,6 +1,0 @@
-pandas
-pytest
-streamlit
-openai
-tabulate
-spotipy

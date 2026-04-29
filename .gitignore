@@ -1,7 +1,0 @@
-.cache
-.env
-.pkce_verifier.json
-.spotify_cache
-.streamlit/
-__pycache__/
-*.pyc
