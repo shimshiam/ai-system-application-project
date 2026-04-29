@@ -137,20 +137,11 @@ def retrieve_candidate_songs(
             continue
         if not request.allows_lyrics and song.get("language") != "Instrumental":
             continue
+        if not request.likes_acoustic and song.get("acousticness", 0.0) > 0.5:
+            continue
         filtered_songs.append(song)
-        
-    if len(filtered_songs) < k and songs:
-        # Not enough songs survived the lyrics filter — pad with songs that
-        # pass the explicit filter (but may have lyrics) to fill the playlist.
-        existing_ids = {id(s) for s in filtered_songs}
-        extras = [s for s in songs
-                  if id(s) not in existing_ids
-                  and (request.allows_explicit or s.get("explicit", 0) != 1)]
-        filtered_songs.extend(extras)
-        if len(filtered_songs) < k:
-            # Fallback 2: Ignore all filters to prevent empty retrieval
-            remaining = [s for s in songs if id(s) not in {id(s2) for s2 in filtered_songs}]
-            filtered_songs.extend(remaining)
+    
+    # Strict mode: No fallbacks. If filters leave us with 0 songs, we return 0 songs.
 
     user_prefs = {
         "genre": request.preferred_genre or primary_rule.get("recommended_genre"),

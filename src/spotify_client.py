@@ -375,6 +375,7 @@ def _infer_features(
         "valence": round(0.35 + (energy * 0.45), 2),
         "danceability": round(0.30 + (energy * 0.55), 2),
         "acousticness": round(acousticness, 2),
+        "is_instrumental": genre in {"ambient", "classical", "jazz", "lofi", "edm", "electronic", "funk", "world", "afrobeat"},
         "detailed_mood_tags": _mood_tags(mood, artist_genres),
     }
 
@@ -419,11 +420,12 @@ def _classify_with_openai(tracks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         "- energy: Float 0.0 to 1.0 (0=very calm, 0.3=chill, 0.5=moderate, "
         "0.7=upbeat, 1.0=max intensity).\n"
         "- acousticness: Float 0.0 to 1.0 (0=electronic, 1.0=acoustic).\n"
+        "- is_instrumental: Boolean (true if track has no lyrics, false otherwise).\n"
         "- detailed_mood_tags: 2-4 descriptive mood tags.\n\n"
         "Use your knowledge of these artists and songs to classify accurately.\n\n"
         "Return JSON in this exact format:\n"
         '{"tracks": [{"spotify_id": "...", "genre": "...", "mood": "...", '
-        '"energy": 0.5, "acousticness": 0.5, "detailed_mood_tags": ["..."]}, ...]}\n'
+        '"energy": 0.5, "acousticness": 0.5, "is_instrumental": true, "detailed_mood_tags": ["..."]}, ...]}\n'
         "Return ONLY valid JSON, no other text."
     )
 
@@ -471,7 +473,11 @@ def _merge_classifications(
         updated["tempo_bpm"] = round(70 + (updated["energy"] * 85), 1)
         updated["valence"] = round(0.35 + (updated["energy"] * 0.45), 2)
         updated["danceability"] = round(0.30 + (updated["energy"] * 0.55), 2)
-        updated["language"] = _language_from_features(updated)
+        
+        # Use explicit AI detection for instrumental vs vocal
+        is_inst = classification.get("is_instrumental", False)
+        updated["is_instrumental"] = is_inst
+        updated["language"] = "Instrumental" if is_inst else "English"
         merged.append(updated)
     return merged
 
@@ -531,6 +537,12 @@ def _release_year(track: Dict[str, Any]) -> int:
 
 
 def _language_from_features(features: Dict[str, Any]) -> str:
+    # If the track has already been through AI classification, use that flag.
+    # Otherwise, fallback to the genre-based guess.
+    is_inst = features.get("is_instrumental")
+    if is_inst is not None:
+        return "Instrumental" if is_inst else "English"
+    
     instrumental_friendly = {
         "ambient", "classical", "jazz", "lofi",
         "edm", "electronic", "funk", "world", "afrobeat",
