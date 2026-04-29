@@ -1,103 +1,88 @@
-# 🎧 Vibe Synthesizer (RAG Study DJ)
+# 🎚️ Vibe Synthesizer (RAG Study DJ)
 
-Vibe Synthesizer is a Streamlit-based music recommender application that generates highly personalized study playlists. It utilizes traditional content-based song filtering combined with Retrieval-Augmented Generation (RAG) principles and live Spotify account integration to curate well-paced study blocks tailored to your specific task, focus goals, and musical preferences.
+**Vibe Synthesizer** is an advanced, RAG-powered music recommendation system designed to curate perfectly paced study playlists. By bridging the gap between your personal Spotify library and task-specific cognitive focus strategies, it ensures your audio environment matches the intensity of your work.
 
-The application features a unique, custom 2000s metallic hardware aesthetic for its UI, providing an engaging and nostalgic user experience.
+---
 
-## ✨ Features
+## 🕒 Original Project: Music Recommender Simulation (Module 3)
+This project originated as **Music Recommender Simulation**, a simple command-line interface tool. 
+*   **Original Goals**: To demonstrate basic content-based filtering by matching user-inputted genre and mood preferences against a static catalog of 20 songs.
+*   **Original Capabilities**: Basic scoring logic based on energy closeness and string-match genre detection, producing a ranked list of top 5 recommendations in the terminal.
 
-- **Spotify PKCE Integration**: Securely connect to your Spotify account using the PKCE authorization flow to import your top and recently played tracks. The app uses a server-configured Spotify Client ID and never asks end users for a Client Secret.
-- **Retrieval-Augmented Generation (RAG)**: Combines user preferences with retrieved study rules to ensure the generated playlist matches the desired pacing and target energy levels.
-- **Hybrid AI Pipeline**: Leverages OpenAI models (if an API key is provided) to intelligently classify unknown Spotify tracks, synthesize the final tracklist with justifications, and provide a holistic study strategy.
-- **Smart Fallback Mechanism**: Gracefully falls back to deterministic planning and title-based genre/mood assignments if API restrictions occur (e.g., `403 Forbidden` from Spotify) or if strict user constraints filter out too many tracks.
-- **Custom UI Aesthetic**: A highly-styled 2000s metallic mixer interface built entirely with custom CSS in Streamlit.
+---
 
-## 📂 Project Structure
+## 🏗️ Architecture Overview
 
-```text
-.
-├── assets/                 # Architecture diagrams, screenshots, and visual assets
-├── data/                   # Default catalog data
-│   ├── songs.csv           # Baseline curated tracks
-│   └── study_rules.csv     # Task-specific study rules and pacing guidance
-├── docs/                   # Additional documentation
-├── src/                    # Source code
-│   ├── main.py             # CLI runner
-│   ├── recommender.py      # Core recommendation engine and scoring logic
-│   ├── spotify_client.py   # Spotify API integration (PKCE flow, track importing)
-│   └── study_dj.py         # RAG pipeline and playlist generation logic
-├── tests/                  # Unit tests
-├── streamlit_app.py        # Streamlit web application (UI and entry point)
-├── agent_memory.md         # Developer notes and shared memory
-├── model_card.md           # Model architecture and details
-└── requirements.txt        # Python dependencies
-```
+The Vibe Synthesizer evolved into a multi-layered Retrieval-Augmented Generation (RAG) system:
 
-## 🚀 Getting Started
+1.  **Ingestion Layer**: Securely imports user data (Top Tracks, Recently Played) via the **Spotify PKCE Flow**.
+2.  **Retrieval Layer (The Vibe Engine)**: 
+    *   Queries `study_rules.csv` for task-specific guidance (e.g., "Coding" requires "Instrumental" and "High Energy").
+    *   Scores candidate tracks using weighted algorithms (**Balanced**, **Resonance**, **Energy-Focused**) to find the best match for the current focus block.
+3.  **Synthesis Layer (RAG)**: An LLM (OpenAI) synthesizes the retrieved tracks and study rules into a cohesive **Playlist Plan**, providing a "Pacing Note" for every track to explain its role in the study arc.
+4.  **Presentation Layer (Mix Console)**: A custom-themed Streamlit dashboard utilizing a **2000s skeuomorphic hardware aesthetic** for a tactile, immersive user experience.
+
+---
+
+## 🚀 Setup Instructions
 
 ### Prerequisites
-
 - Python 3.8+
-- [Spotify Developer Account](https://developer.spotify.com/dashboard/) (to get a Client ID and set up Redirect URIs)
-- (Optional) [OpenAI API Key](https://platform.openai.com/) for the AI-powered generative planning and feature inference.
+- [Spotify Developer Account](https://developer.spotify.com/dashboard/) (to obtain a Client ID)
+- (Optional) [OpenAI API Key](https://platform.openai.com/) for AI-powered planning.
 
 ### Installation
-
-1. **Clone the repository:**
+1. **Clone and Enter**:
    ```bash
    git clone https://github.com/shimshiam/ai-system-application-project.git
    cd ai-system-application-project
    ```
-
-2. **Create and activate a virtual environment (recommended):**
+2. **Environment Setup**:
    ```bash
    python3 -m venv .venv
-   source .venv/bin/activate  # On Windows, use `.venv\Scripts\activate`
-   ```
-
-3. **Install dependencies:**
-   ```bash
+   source .venv/bin/activate
    pip install -r requirements.txt
    ```
-
-### Configuration
-
-Configure Spotify and optional OpenAI access on the server before starting the app.
-
-If setting environment variables:
-```bash
-export SPOTIPY_CLIENT_ID="your_spotify_client_id"
-export SPOTIPY_REDIRECT_URI="http://127.0.0.1:8501" # Default Streamlit port
-export OPENAI_API_KEY="your_openai_api_key" # Optional
-```
-
-*Note: You must add `http://127.0.0.1:8501` as a Redirect URI in your Spotify Developer Dashboard for the integration to work.*
+3. **Configuration**: Create a `.env` file or export the following:
+   ```bash
+   export SPOTIPY_CLIENT_ID="your_client_id"
+   export SPOTIPY_REDIRECT_URI="http://127.0.0.1:8501"
+   export OPENAI_API_KEY="your_openai_key" # Optional
+   ```
 
 ### Running the App
-
-Start the Streamlit development server:
-
 ```bash
 streamlit run streamlit_app.py
 ```
 
-The app will open automatically in your browser at `http://localhost:8501`.
+---
 
-## 🎮 Usage
+## 🎮 Sample Interactions
 
-1. **Connect Spotify (Optional)**: If the server is configured with `SPOTIPY_CLIENT_ID`, use the "Connect Spotify" button in the "Mix Console" section to authorize your account and import your tracks. You can also proceed using the built-in demo catalog.
-2. **Set Study Session**: Choose your task type (e.g., coding, reading), focus goal, and desired session length.
-3. **Configure Preferences**: Set your preferred genre, mood, target energy, and toggle advanced filters (Acoustic, Lyrics, Explicit).
-4. **Generate**: The Vibe Synthesizer will immediately compute and display your retrieved context, the generated playlist plan, and a custom study strategy.
+| Input (Task/Goal) | Preferred Vibe | Resulting AI Output (Strategy) |
+| :--- | :--- | :--- |
+| **Coding / Deep Work** | Lo-Fi, Chill, 0.4 Energy | "Warm-up with 'Midnight City' (0.35 energy). Build to 'Data Stream' (0.6 energy) during core logic hours. Strategy: Use steady rhythms to mask ambient noise." |
+| **Reading / Calm** | Jazz, Relaxed, 0.2 Energy | "A 30-minute block of low-intensity acoustic jazz. Strategy: Maintain a consistent background hum without linguistic distraction to maximize comprehension." |
+| **Workout / Power** | Metal, Aggressive, 0.9 Energy | "High-intensity metal and electronic tracks. Strategy: Maximum BPM and aggressive mood weighting to drive physical performance during interval peaks." |
 
-## 🧪 Testing
+---
 
-Run the test suite using:
+## 🛠️ Design Decisions & Trade-offs
 
-```bash
-PYTHONPATH=. pytest -q
-```
+*   **Skeuomorphic Hardware UI**: I chose a "Mix Console" aesthetic to make the "Synthesis" of vibes feel physical and tactile, moving away from flat modern design to create a more focused, nostalgic environment.
+*   **Spotify PKCE Authorization**: I implemented the PKCE flow specifically to improve security. This allows the application to run in client-side contexts without requiring a `Client Secret`, making it safer for users to connect their accounts.
+*   **RAG vs. Pure Generative**: Instead of letting the AI "hallucinate" songs, I use RAG to ground every recommendation in the user's actual Spotify library or a curated catalog.
 
-## 📝 License
+---
 
-This project is open-source. Feel free to use, modify, and distribute it as needed.
+## 🧪 Testing Summary
+
+*   **What Worked**: The hybrid scoring system successfully distinguishes between "Background" tasks (low energy, acoustic) and "Active" tasks (high energy, electronic).
+*   **The Energy Drift Problem**: During testing, I found that high-energy tracks often dominated rankings. I solved this by implementing the **Resonance Scorer**, which penalizes tracks that deviate too far from the median library energy.
+*   **Automation**: Unit tests (`pytest`) ensure that Spotify data parsing remains robust even when metadata is missing or restricted.
+
+---
+
+## 🧠 Reflection: AI and Problem Solving
+
+Building the **Vibe Synthesizer** taught me that the "Vibe" of an AI application is as much about the **deterministic constraints** as it is about the **generative model**. By using RAG, I ensure the AI acts as a "curator" rather than a "creator," which is essential for tools meant to aid human productivity. I learned that the most difficult part of AI development isn't the prompt engineering—it's the **data plumbing** and ensuring the UI provides enough feedback for the user to trust the algorithm's decisions.
