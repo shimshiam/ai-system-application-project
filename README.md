@@ -22,6 +22,9 @@ The Vibe Synthesizer is built on a multi-layered Retrieval-Augmented Generation 
 
 For a detailed visual map of the data flow and component relationships, see the [System Architecture Diagram](assets/system_diagram.md).
 
+![System Structure Diagram](assets/system_structure.png)
+
+
 
 ### Core Pipeline
 1. **Ingestion**: Music data is pulled from a demo catalog or a live **Spotify account** (using secure PKCE authorization). Spotify tracks are automatically classified for genre and energy using an AI-heuristic hybrid.
